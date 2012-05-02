@@ -1,0 +1,1908 @@
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = true;
+}
+
+
+PARSER_BEGIN(TCRL_Parser)
+
+//********************************************************************************
+//							        PAQUETE
+//********************************************************************************
+// Este es el PAQUETE en FASTEST al cual perteneceran las CLASES generadas
+// por javaCC para el REFINAMIENTO a JAVAS
+package client.blogic.testing.refinement;
+//********************************************************************************
+//						         IMPORTACIONES
+//********************************************************************************
+import java.util.*;
+// import java.io.*;
+
+//********************************************************************************
+//					      DECLARACIONES de las CLASES
+//********************************************************************************
+
+
+//********************************************************************************
+//                CLASES que reprentan al MODULO LOGICO AST
+//********************************************************************************
+
+//********************************************************************************
+/**
+ * CLASE que representa la ra�z del �RBOL de SINTAXIS ABSTRACTA. Contiene
+ * el NOMBRE de la LEY de REFINAMIENTO, el texto del PR�AMBULO, el texto del EP�LOGO
+ * y las REGLAS de REFINAMIENTO contenidas en la LEY de REFINAMIENTO.
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */
+class TCRL_AST {
+
+    private String      name;
+    // private String specLang:
+    // private String implLang:
+    private String      preamble;
+	private NodeRules   rules;
+    private String      epilogue;
+    
+
+   /**
+    * CONSTRUCTOR de la clase TCRL_AST
+    * 
+    * @param		lawName		NOMBRE de la LEY de REFINAMIENTO
+    * @param		preamble	PREAMBULO de la LEY de REFINAMIENTO
+    * @param		rules		REGLAS de REFINAMIENTO contenidas en la LEY de REFINAMIENTO
+    * @param		epilogue	EPILOGO de la LEY de REFINAMIENTO
+    */
+    TCRL_AST(String lawName, String preamble, NodeRules rules, String epilogue) {
+      
+        this.name        = lawName;
+        this.preamble    = preamble;
+        this.rules       = rules;
+        this.epilogue    = epilogue;
+
+    }
+
+   /**
+    * Devuelve el NOMBRE de la LEY de REFINAMIENTO
+    * 
+    * @return	el NOMBRE de la LEY de REFINAMIENTO
+    */
+    public String getName(){
+        return name;
+    }
+
+   /**
+    * Devuelve el PREAMBULO de la LEY de REFINAMIENTO
+    * 
+    * @return	el PREAMBULO de la LEY de REFINAMIENTO
+    */
+    public String getPreamble(){
+        return preamble;
+    }
+     
+   /**
+    * Devuelve el NOMBRE de la LEY de REFINAMIENTO
+    * 
+    * @return	el EPILOGO de la LEY de REFINAMIENTO
+    */
+    public String getEpilogue(){
+        return epilogue;
+    }
+
+   /**
+    * Devuelve las REGLAS de REFINAMIENTO contenidas en la LEY de REFINAMIENTO
+    * 
+    * @return	las REGLAS de REFINAMIENTO contenidas en la LEY de REFINAMIENTO
+    */
+    public NodeRules getRules(){
+        return rules;
+    }
+}
+//********************************************************************************
+/**
+ * Este nodo del �RBOL de SINTAXIS ABSTRACTA contiene el conjunto
+ * de todas las REGLAS de REFINAMIENTO, cada una como una instancia de la clase NodeRule.
+ *
+ * @see NodeRule
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */ 
+class NodeRules {
+
+	// Quiero hacer este SIN�NIMO de TIPO:
+	// RuleName = String
+
+    // el 1er. ARGUMENTO del HashMap es el NOMBRE de la REGLA
+    private HashMap<String, NodeRule> rules = new HashMap<String, NodeRule>();
+
+	// Sirve para generar los NOMBRES a REGLAS que fueron agregadas
+	// sin NOMBRE.
+	// NOTA: El NOMBRE de la REGLA (RuleName) es OPCIONAL en TCRL
+	private Integer COUNTER = 0;
+	
+   /**
+    * Agrega una REGLA de REFINAMIENTO
+    * 
+    * @param	ruleName    NOMBRE de la REGLA de REFINAMIENTO [OPCIONAL]
+    * @param	rule   		REGLA de REFINAMIENTO asociada al NOMBRE de la
+    *                  		REGLA de REFINAMIENTO
+    *
+    * @see NodeRule
+    */
+	public void addRule(String ruleName, NodeRule rule){
+		rules.put(ruleName,rule);
+	}
+    
+   /**
+    * Agrega una REGLA de REFINAMIENTO
+    *
+    * @param	rule   		REGLA de REFINAMIENTO.
+    *						Se asociada a un NOMBRE de
+    *                  		REGLA de REFINAMIENTO generado autom�ticamente
+    *						de la forma: RULE_NAME_GENERATED_#number,
+    *						donde number es un N�MERO generado autom�ticamente
+    *						por la IMPLEMENTACI�N de la CLASE NodeRules.
+    *
+    * @see NodeRule
+    */
+	public void addRule(NodeRule rule){
+
+		String RULE_NAME_GENERATED  = new String("RULE_NAME_GENERATED_#" + COUNTER.toString());
+
+		COUNTER = COUNTER + 1;
+
+		addRule(RULE_NAME_GENERATED, rule);
+	}
+
+   /**
+    * Obtiene la REGLA de REFINAMIENTO con NOMBRE ruleName
+    * 
+    * @param    ruleName    NOMBRE de la REGLA de REFINAMIENTO
+    *
+    * @return   la REGLA de REFINAMIENTO asociada
+    */
+    public NodeRule getRule(String ruleName){
+        return rules.get(ruleName);
+    }
+
+   /**
+    * Obtiene una LISTA de los NOMBRES de todas las REGLAS de REFINAMIENTO
+    *
+    * @return   la LISTA de los NOMBRES de todas las REGLAS de REFINAMIENTO
+    */
+    public Set<String> getKeys(){
+        return rules.keySet();
+    }
+}
+//********************************************************************************
+/**
+ * Representa la INTERFAZ para todos los NODOS para TIPOS en el �RBOL de SINTAXIS ABSTRACTA
+ * Los NODOS para TIPOS particulares son por ej: NodeArrray, NodeList, etc.
+ * HEREDAN de esta CLASE.
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */ 
+class NodeType {
+
+// Asi vacio esta el MODULO en la pagina 30
+
+}
+//********************************************************************************
+/**
+ * Representa a una REGLA (ya sea de SIN�NIMO o de REFINAMIENTO)
+ * para una VARIABLE de la ESPECIFICACI�N FORMAL en Z.
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */ 
+class NodeRule {
+
+//    protected NodeType nodeType;
+//
+//   /**
+//    * Devuelve el TIPO del NODO
+//    *
+//    * @return   el TIPO del NODO
+//    *
+//    * @see NodeType
+//    */
+//    public NodeType getNodeType(){
+//        return nodeType;
+//    }
+
+}
+//********************************************************************************
+/**
+ * Representa el TIPO de NODO en el �RBOL de SINTAXIS ABSTRACTA
+ * que almacena una REGLA de SIN�NIMO.
+ * Extiende a la CLASE NodeRule.
+ *
+ * @see NodeRule
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */ 
+class RuleSynonym extends NodeRule {
+
+    private String name;
+	private NodeType nodeType;
+	
+   /**
+    * CONSTRUCTOR de la CLASE
+    * 
+    * @param    synonymName		NOMBRE de la REGLA de SIN�NIMO
+    * @param    nodeType		NODO que CONTIENE la REGLA de SIN�NIMO
+    *
+    * @see NodeType
+    */
+    RuleSynonym(String synonymName, NodeType nodeType) {
+
+        this.name		= synonymName;
+        this.nodeType	= nodeType;	// type est� declarada en NodeRule
+
+    }
+
+   /**
+    * Devuelve el NOMBRE que se le asigno a la REGLA de SIN�NIMO
+    *
+    * @return   el NOMBRE que se le asigno a la REGLA de SIN�NIMO
+    */
+    public String getName(){
+        return name;
+    }
+
+   /**
+    * Devuelve el TIPO de NODO asociado a la REGLA de SIN�NIMO
+    *
+    * @return   el TIPO de NODO asociado a la REGLA de SIN�NIMO
+    */
+	public NodeType getNodeType(){
+        return nodeType;
+    }
+}
+//********************************************************************************
+/**
+ * Representa el TIPO de NODO en el �RBOL de SINTAXIS ABSTRACTA
+ * que almacena una REGLA de REFINAMIENTO.
+ * Extiende a la CLASE NodeRule.
+ *
+ * @see NodeRule
+ *
+ * @author  Diego Hollman
+ * @author  Pablo D. Coca
+ *
+ * @since   v1.0
+ *
+ * @version 2.0
+ */ 
+class RuleRefinement extends NodeRule {
+
+    private ArrayList<String> specIDs;	// Ej: specIDs = {"day", "month",�ear"}
+
+	// date:STRUCTURE[ .... ]
+    private HashMap<String, NodeType> implIDs;
+    
+    // ImplVARS: VARIABLES de la IMPLEMENTACI�N asociadas a c�digo JAVA
+    // para el REFINAMIENTO
+    private HashMap<ArrayList<String>, String> implVARS;
+    
+	
+    // SpecVARS: VARIABLES de la ESPECIFICACI�N asociadas a c�digo JAVA
+    // para el proceso de ABSTRACCI�N (todav�a no DESARROLLADO)
+	//private HashMap< ArrayList<String>, String> specVARS;
+
+	// VARIABLES de la ESPECIFICACI�N asociadas a c�digo JAVA
+	private Abstraction abstraction;
+
+
+   /**
+    * CONSTRUCTOR
+    * 
+    * @param    specificationNames   	NOMBRES de la VARIABLES en la ESPECIFICACI�N
+    * @param    implementationNames     NOMBRE y TIPO de NODO de la VARIABLES en la IMPLEMENTACI�N
+    * @param    implVARS            	
+    * @param    specVARS            	
+    *
+    * @see NodeType
+    */
+    RuleRefinement	(	ArrayList<String> specificationIDs,
+    					HashMap<String, NodeType> implementationIDs,
+    					HashMap< ArrayList<String>, String> implVARS,	// quiz�s deba llamarse REF
+    					Abstraction abstraction
+    				)
+    {
+        this.specIDs		= specificationIDs;
+        this.implIDs		= implementationIDs;
+        this.abstraction	= abstraction;
+        this.implVARS		= implVARS;        
+    }
+
+   /**
+    * Devuelve los NOMBRES de la VARIABLES de la ESPECIFICACI�N asociadas
+    * a la REGLA de REFINAMIENTO
+    *
+    * @return   los NOMBRES de la VARIABLES de la ESPECIFICACI�N asociadas
+    *           a la REGLA de REFINAMIENTO
+    */
+    public ArrayList<String> getSpecIDs(){
+        return specIDs;
+    }
+
+   /**
+    * Devuelve los NOMBRES de las VARIABLES en la IMPLEMENTACI�N asociadas
+    * a la REGLA de REFINAMIENTO
+    *
+    * @return   los NOMBRES de las VARIABLES en la IMPLEMENTACI�N asociadas
+    *           a la REGLA de REFINAMIENTO
+    */
+    public Set<String> getImplIDs(){
+        return implIDs.keySet();
+    }
+
+    public NodeType getNodeType(String implID){
+        return implIDs.get(implID);
+    }
+
+	public void setNodeType(String implID, NodeType nodeType){
+        implIDs.put(implID, nodeType);
+    }
+
+    public Abstraction getAbstraction()
+    {
+        return abstraction;
+    }
+    
+    public HashMap< ArrayList<String>, String> getImplVARS(){
+        return implVARS;
+    }
+}
+//********************************************************************************
+
+
+//********************************************************************************
+/**
+ * Represents the SECTION "ASBTRACTION" of one REFINEMENT RULE
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ *
+ * @version 2.0
+ */ 
+class Abstraction
+{
+	//			   (specID, equality) 
+    private HashMap<String, List <Equality > > equalities;
+
+   /**
+    * CONSTRUCTOR
+    * 
+    * @param    equalities   	Equalities        	
+    *
+    */
+
+    Abstraction()
+    {
+        // this.equalities		= null;
+        this.equalities		= new HashMap<String, List<Equality > >();
+    }
+    
+    Abstraction	(HashMap<String, List<Equality> > equalities)
+    {
+        this.equalities		= equalities; 
+    }
+
+	public void addEquality(String specID, Equality equality)
+	{
+        if ( ! equalities.containsKey( specID ) )
+        {
+            List	listEqualities	= 	new ArrayList( );
+
+            listEqualities.add(equality);
+
+            equalities.put( specID, listEqualities);
+        }
+        else
+        {
+            List	listEqualities = (List) equalities.get(specID);
+
+            listEqualities.add( equality );
+
+			equalities.remove(specID);
+			
+            equalities.put( specID, listEqualities);
+        }
+
+	  
+        // equalities.put(	specID, equality);
+    }
+
+    public HashMap<String, List<Equality> > getEqualities()
+	{
+        return	equalities;
+    }
+
+	public List<Equality> getEqualities(String specID)
+	{
+        return	equalities.get(specID);
+    }
+
+}  
+//********************************************************************************
+
+
+//********************************************************************************
+/**
+ * Represents an EQUALITY of an "ABSTRACTION"
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ * @version 2.0
+ */ 
+class Equality
+{
+  	private	String	preOperatorSpecID;
+  	private	String	postOperatorSpecID;
+
+	private	String	plCodePreamble;
+    private	String	plCodeEquality;
+
+	//--------------------------------------------------------------------------------
+	/**
+    * CONSTRUCTOR
+    */
+    Equality	()
+    {
+        this.preOperatorSpecID		= null;
+        this.postOperatorSpecID		= null;
+        this.plCodePreamble			= null;
+        this.plCodeEquality			= null; 
+    }
+	//--------------------------------------------------------------------------------
+	/**
+    * CONSTRUCTOR
+    */
+    Equality	(	String	preOperatorSpecID,
+    				String	postOperatorSpecID,
+					String	plCodePreamble,
+					String	plCodeEquality
+    			)
+    {
+        this.preOperatorSpecID		= preOperatorSpecID;
+        this.postOperatorSpecID		= postOperatorSpecID;
+        this.plCodePreamble			= plCodePreamble;
+        this.plCodeEquality			= plCodeEquality; 
+    }
+	//--------------------------------------------------------------------------------
+	public void setPreOperatorSpecID(String preOperatorSpecID)
+	{
+        this.preOperatorSpecID		=	preOperatorSpecID;
+    }
+
+	public String getPreOperatorSpecID()
+	{
+        return preOperatorSpecID;
+    }
+	//--------------------------------------------------------------------------------
+	public void setPostOperatorSpecID(String postOperatorSpecID)
+	{
+        this.postOperatorSpecID		=	postOperatorSpecID;
+    }
+
+	public String getPostOperatorSpecID()
+	{
+        return postOperatorSpecID;
+    }
+	//--------------------------------------------------------------------------------
+	public void setPLCodePreamble(String plCodePreamble)
+	{
+        this.plCodePreamble		=	plCodePreamble;
+    }
+
+	public String getPLCodePreamble()
+	{
+        return plCodePreamble;
+    }
+	//--------------------------------------------------------------------------------
+	public void setPLCodeEquality(String plCodeEquality)
+	{
+        this.plCodeEquality		=	plCodeEquality;
+    }
+
+	public String getPLCodeEquality()
+	{
+        return plCodeEquality;
+    }
+	//--------------------------------------------------------------------------------
+    
+}
+//********************************************************************************
+
+
+
+
+
+//********************************************************************************
+//              CLASES que reprentan al M�DULO L�GICO NodeType
+//********************************************************************************
+
+//********************************************************************************
+class NodeSynonym extends NodeType { 
+
+    private String id;
+
+    NodeSynonym(String synonymID) {
+        id = synonymID;
+    }
+
+    public String getID(){
+        return id;
+    }
+}
+//********************************************************************************
+class NodePointer extends NodeType{
+
+    private NodeType type;
+
+    NodePointer(NodeType type){
+        this.type = type;
+    }
+    
+    public NodeType getType(){
+        return type;
+    }
+}
+//********************************************************************************
+/**
+ * Representa el TIPO de NODO en el �RBOL de SINTAXIS ABSTRACTA
+ * que almacena TIPOS PRIMITVOS del LENGUAJE de IMPLEMENTACI�N (ej: int, char, boolean).
+ *
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ *
+ * @version 2.0
+ */
+class NodePLType extends NodeType {
+
+    private String type;
+
+    NodePLType(String type)
+    {
+        this.type = type;
+    }
+
+    public String getType()
+    {
+        return type;
+    }
+}
+//********************************************************************************
+class NodeArray extends NodeType {
+
+    private	NodeType	type;
+    private	int			size;
+    private String lastPositionPointer;
+
+    NodeArray(NodeType nodeType, int size)
+    {
+        this.type = nodeType;
+        this.size = size;
+	this.lastPositionPointer = null;
+    }
+
+    NodeArray(NodeType nodeType, int size, String lastPositionPointer)
+    {
+        this.type = nodeType;
+        this.size = size;
+	this.lastPositionPointer = lastPositionPointer;
+    }
+
+    public NodeType getType()
+    {
+        return type;
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    public String getLastPosPointerID(){
+	return lastPositionPointer;
+    }
+    public void setLastPosPointerID(String lastPositionPointer){
+	this.lastPositionPointer = lastPositionPointer;
+    }
+}
+//********************************************************************************
+/**
+ * Represents the NODE for the ELEMENTS of NodeStructure
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ *
+ * @version 2.0
+ */
+class NodeElement extends NodeType{
+
+    private String 		id;
+    private NodeType	type;
+	private String 		constant;
+
+    NodeElement(String id, NodeType	type){
+       this.id = id;
+       this.type = type;
+       this.constant = null;
+    }
+    
+    NodeElement(String id, NodeType	type, String constant){
+       this.id = id;
+       this.type = type;
+       this.constant = constant;
+    }
+    
+    public String getID(){
+        return id;
+    }
+
+    public NodeType getType(){
+        return type;
+    }
+
+    public String getConstant(){
+        return constant;
+    }
+
+}
+//********************************************************************************
+/**
+ * Represents the TYPE in the ABSTRAX SYNTAX TREE
+ * which saves a JAVA CLASS.
+ *
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ *
+ * @version 2.0
+ */
+class NodeStructure extends NodeType{
+
+    private String name;	// Si es necesario el TESTER debe ingresar el NOMBRE
+    						// de la CLASE precedi�ndola con el PAQUETE que la CONTIENE.
+    						// EJEMPLO: java.lang.Integer 
+
+    private List<NodeElement> elements;
+
+	// CONSTRUCTOR
+    NodeStructure(	String name,
+    				List<NodeElement> elements	// VER si hay que SACAR o CAMBIAR
+    			 )
+	{
+        this.name 	= name;
+        this.elements	= elements;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+	public List<NodeElement> getElements(){
+        return elements;
+    }
+
+}
+//********************************************************************************
+/**
+/**
+ * Represents the NODE TYPE in the ABSTRAX SYNTAX TREE
+ * which saves ENUMERATED TYPES.
+ *
+ * @author  Pablo D. Coca
+ *
+ * @since   v2.0
+ *
+ * @version 2.0
+ */
+class NodeEnumeration extends NodeType{
+
+    private NodeType						type;
+	// <element, constant >
+	private HashMap<String, String> elements = new HashMap<String, String>();
+
+	// CONSTRUCTOR
+    NodeEnumeration	(	NodeType type,
+    					HashMap<String, String> elements
+    			 	)
+	{
+        this.type 	= type;
+        this.elements	= elements;
+    }
+
+    public NodeType getType()
+    {
+        return type;
+    }
+
+	public HashMap<String, String> getElements()
+	{
+        return elements;
+    }
+
+	public String getConstant(String element)
+	{
+        return elements.get(element);
+    }
+}
+//********************************************************************************
+class NodeList extends NodeType{
+
+    private String name;
+    private String linkType;
+    private String linkNextName;
+    private String linkPrevName;
+    private String memAlloc;
+    List<NodeElement> fields;
+    private String listType;
+    private NodeType nodeType;
+
+    // Constructor for C Languaje
+    NodeList(String n, String lt, String ln, String lp, List<NodeElement> f, String m)
+    {
+        name = n;
+        linkType = lt;
+        linkNextName = ln;
+        linkPrevName = lp;
+        fields = f;
+        memAlloc = m;
+    }
+
+    // Constructor for Java Languaje
+    NodeList(String id, String lT, NodeType type)
+    {
+        name = id;
+	listType = lT;
+	nodeType = type;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public String getLinkType(){
+        return linkType;
+    }
+    
+    public String getLinkNextName(){
+        return linkNextName;
+    }
+    
+    public String getLinkPrevName(){
+        return linkPrevName;
+    }
+    
+    public List<NodeElement> getFields(){
+        return fields;
+    }
+    
+    public String getMemAlloc(){
+        return memAlloc;
+    }
+
+    public String getListType(){
+        return listType;
+    }
+    public NodeType getNodeType(){
+        return nodeType;
+    }
+}
+//********************************************************************************
+class NodeFile extends NodeType{
+
+    private String name;
+    private String path;
+    private String delimiter;
+    private String eof;
+    private String eol;
+    private String structure;
+
+    public String getName(){
+        return name;
+    }
+
+    public String getPath(){
+        return path;
+    }
+
+    public String getDelimiter(){
+        return delimiter;
+    }
+    
+    public String getEol(){
+        return eol;
+    }
+
+    public String getEof(){
+        return eof;
+    }
+
+    public String getStructure(){
+        return structure;
+    }
+
+	//Y el token fieldsRelation?
+    NodeFile(String name, String path, String delimiter, String eol, String eof, String structure){
+        this.name = name;
+        this.path = path;
+        this.delimiter = delimiter;
+        this.eol = eol;
+        this.eof = eof;
+        this.structure = structure;
+    }
+}
+//********************************************************************************
+class NodeDBColumn extends NodeType{
+
+    private String colName;
+    private String colType;
+
+    public String getColName(){
+        return colName;
+    }
+
+    public String getColType(){
+        return colType;
+    }
+
+    NodeDBColumn(String n, String t){
+        colName = n;
+        colType = t;
+    }
+}
+//********************************************************************************
+class NodeDB extends NodeType{
+
+	private String dbmsID;
+    private String connectionID;
+    private String tableName;
+	private List<NodeDBColumn> columns;
+
+	public String getDBMSID(){
+        return dbmsID;
+    }
+
+    public String getConnectionID(){
+		return connectionID;
+	}
+
+    public String getTableName(){
+		return tableName;
+	}
+
+	public List<NodeDBColumn> getColumns(){
+		return columns;
+	}
+
+	NodeDB(String dbmsID, String connectionID, String tableName, List<NodeDBColumn> columns){
+		this.dbmsID			=	dbmsID;
+        this.connectionID	=	connectionID;
+        this.tableName		=	tableName;
+		this.columns		=	columns;
+	}
+}
+//********************************************************************************
+class NodeRFR extends NodeType{
+
+    private String lawName, specID;
+
+    public String getLawName(){
+        return lawName;
+    }
+
+    public String getSpecID(){
+        return specID;
+    }
+
+    NodeRFR(String lawName, String specID){
+        this.lawName	=	lawName;
+        this.specID		=	specID;
+    }
+}
+//********************************************************************************
+public class TCRL_Parser {
+
+	public static void main(String args[]) throws ParseException {
+
+		// RENOMBRADA ya que no se ACCESA
+	   	TCRL_AST r;
+	
+	    TCRL_Parser parser = new TCRL_Parser(System.in);
+	
+	    r	=	parser.parse();
+  }
+}
+//********************************************************************************
+
+PARSER_END(TCRL_Parser)
+
+
+//********************************************************************************
+//							TOKENS del BNF de TCRL v2
+//********************************************************************************
+
+//********************************************************************************
+SKIP :
+{
+  " "								// ESPACIO VAC�O
+| "\t"								// TAB
+| "\r"								// RETURN
+| "/*" : CommentState				// COMMENTS like /* HOLA ... */
+| "//" : LineCommentState			// COMMENTS like // HOLA ...
+}
+//********************************************************************************
+
+<CommentState> SKIP :
+{
+  "*/" : DEFAULT
+}
+
+<CommentState> MORE :
+{
+  <~[]>					// CUALQUIER CARACTER
+}
+
+<LineCommentState> SKIP :
+{
+  < ( "\n" | "\r" | "\r\n" ) > : DEFAULT
+}
+
+<LineCommentState> MORE :
+{
+  <(~[ "\n" , "\r" ])>	// MIENTRAS no haya NUEVA L�NEA o RETORNO
+}
+
+
+TOKEN :
+{
+  <PREAMBLE: "PREAMBLE" <EOL> >			: PLCodeState
+| <EPILOGUE: "EPILOGUE" <EOL> >			: PLCodeState
+| <ABSTRACTION: "@ABSTRACTION" <EOL> >	: Abstraction
+| <SYNONYM: "SYNONYM">
+| <PLTYPE: "PLTYPE">
+| <ENUMERATION: "ENUMERATION">
+| <ARRAY: "ARRAY">
+| <POINTER: "POINTER">
+| <STRUCTURE: "STRUCTURE">
+| <LIST: "LIST">
+| <SLL: "SLL">
+| <DLL: "DLL">
+| <CLL: "CLL">
+| <DCLL: "DCLL">
+| <FILE: "FILE">
+| <DB: "DB">
+| <LINEAR: "LINEAR">
+| <RPL: "RPL">
+| <FPL: "FPL">
+| <RFR: "RFR">
+| <ENDOFFILE: "ENDOFFILE">
+| <ENDOFLINE: "ENDOFLINE">
+| <CHAR: "CHAR">
+| <INT: "INT">
+| <VARCHAR: "VARCHAR">
+| <NUMBER: (["0"-"9"])+>
+| <ID: ("*" ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-"] )*) | (["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-","."] )*) >
+| <COLON: ":">
+| <ARROW: "==>">
+| <DEQUAL: "==">
+| <LBRACKET: "[">
+| <RBRACKET: "]">
+| <LPAREN: "(">
+| <RPAREN: ")">
+| <COMMA: ",">
+| <EOL: "\n">
+| <STRING: "\"" (~["\""])* "\"" >
+| <SPECID: ("*" ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-"] )*) | (["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-"] )*) >
+| <IMPLID: ("*" ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-"] )*) | (["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9","!","?","_","-"] )*) >
+
+}
+
+<PLCodeState> TOKEN :
+{
+	  <RULES: "@RULES"> : DEFAULT
+	| <PLCODE: (~["@"])+>
+}
+
+
+//********************************************************************************
+<Abstraction> SKIP :
+{
+	  " "								// ESPACIO VAC�O
+	| "\t"								// TAB
+	| "\r"								// RETURN
+	| "/*" : CommentState				// COMMENTS like /* HOLA ... */
+	| "//" : LineCommentState			// COMMENTS like // HOLA ...
+}
+
+<Abstraction> TOKEN :
+{
+		<CODE:		"@PLCODE"	<EOL>	>		: Abstraction_PLCode
+
+	|	<dom:					"dom"	>
+	|	<ran:					"ran"	>
+	|	<cardinal:				"#"		>
+	|	<partition:				"P"		>
+
+	|	<AS:					"AS"	>		: Abstraction_PLCode
+
+
+
+	| 	<ID_ABSTRACTION: 		(	"*"
+									(
+										["a"-"z","A"-"Z","0"-"9","!","?","_","-"]
+									)*
+								)
+
+							|	(		["a"-"z" , "A"-"Z"]
+									(
+										["a"-"z","A"-"Z","0"-"9","!","?","_","-"]
+									)*
+								)
+		>
+
+
+}
+//********************************************************************************
+
+<Abstraction_PLCode> SKIP :
+{
+	  " "									// ESPACIO VAC�O
+	| "\t"									// TAB
+	| "\r"									// RETURN
+	| "/*" : CommentStateAbstraction		// COMMENTS like /* HOLA ... */
+	| "//" : LineCommentStateAbstraction	// COMMENTS like // HOLA ...
+}
+
+		<CommentStateAbstraction> SKIP :
+		{
+		  "*/" : Abstraction_PLCode
+		}
+		
+		<CommentStateAbstraction> MORE :
+		{
+		  <~[]>					// CUALQUIER CARACTER
+		}
+		
+		<LineCommentStateAbstraction> SKIP :
+		{
+		  < ( "\n" | "\r" | "\r\n" ) > : Abstraction_PLCode
+		}
+		
+		<LineCommentStateAbstraction> MORE :
+		{
+		  <(~[ "\n" , "\r" ])>	// MIENTRAS no haya NUEVA L�NEA o RETORNO
+		}
+
+
+<Abstraction_PLCode> TOKEN :
+{
+
+	 	<END_ABSTRACTION:		"@ENDABSTRACTION"			>	: DEFAULT
+	| 	<SET:					"@SET"						>	: Abstraction
+ 	| 	<EOL_ABSTRACTION: 		"\n"						>
+	| 	<PLCODE_ABSTRACTION: 	(~["@"])+					>
+	
+}
+//********************************************************************************
+
+
+
+//********************************************************************************
+//										BNF
+//********************************************************************************
+
+//********************************************************************************
+TCRL_AST parse() :
+{
+  String		lawName;
+  String		preamble;
+  NodeRules		rules;
+  String		epilogue;
+
+}
+{
+  lawName	= LawName()
+  preamble	= Preamble()
+  rules		= Rules()
+  epilogue	= Epilogue()
+  <EOF> 
+
+  {
+    return new TCRL_AST(	lawName,
+    						preamble,
+    						rules,
+    						epilogue
+    					);
+  }
+
+}
+//********************************************************************************
+String LawName() :
+{ Token name; }
+{
+  name = <ID>
+
+  <EOL>
+
+  {
+     return name.image;
+  } 
+}//********************************************************************************
+String Preamble() :
+{ Token plCode; }
+{
+  <PREAMBLE>
+
+  plCode = <PLCODE>
+
+  {
+     return plCode.image;
+  } 
+}
+//********************************************************************************
+String Epilogue() :
+{
+  Token plCode;
+}
+{
+  <EPILOGUE>
+
+  plCode = <PLCODE> 
+
+  {
+     return plCode.image;
+  } 
+}
+//********************************************************************************
+NodeRules Rules() :
+{
+    NodeRule	rule;
+    NodeRules 	rules = new NodeRules();
+    Token 		ruleName = new Token();
+}
+{
+    <RULES> // <EOL>
+
+	(
+	   	<EOL>				// for VISUAL ASPECTS
+	)*
+
+
+    (
+		{
+  
+      		ruleName = new Token();	// RESET the TOKEN
+     	}
+     	
+      	[
+      		LOOKAHEAD(2)
+      		ruleName =  <ID>		// <RULENAME>
+      		<COLON>
+      	]
+
+        rule = Rule()
+
+		(
+	    	<EOL>				// for VISUAL ASPECTS
+	    )*
+
+        {
+			if (ruleName.image != null)
+	      		rules.addRule(ruleName.image, rule);
+	      	else
+	      		rules.addRule(rule);
+        }
+    )*	// may have one or more REFINEMENT RULES
+
+    {
+        return rules;
+    }
+}
+//********************************************************************************
+NodeRule Rule():
+{ 
+  NodeRule nodeRule;
+}
+{
+  		LOOKAHEAD(3)
+
+	    nodeRule = RuleSynonym() 
+	    {
+	      return nodeRule;
+	    }
+	    
+	|	nodeRule = RuleRefinement() 
+	    { 
+	       return nodeRule;
+	    }
+}
+//********************************************************************************
+RuleSynonym RuleSynonym():
+{
+    Token id;
+    NodeType nodeType;
+}
+{
+    id = <ID>
+    		<DEQUAL>
+    				nodeType = Type() 
+    {
+		return new RuleSynonym(	id.image,
+								nodeType
+							   );
+    }
+}
+//********************************************************************************
+RuleRefinement RuleRefinement():
+{
+	ArrayList<String> 			specIDs;
+	HashMap<String, NodeType>	implIDs		= new HashMap<String, NodeType>();
+
+	Abstraction					abstraction	= new Abstraction();
+
+    Token implID;
+    NodeType nodeType;
+}
+{
+    specIDs = SpecIDS()
+
+    			<ARROW>
+    					implID = <ID>		// <IMPLID>
+
+    							<COLON>
+
+    							nodeType = Type()
+								{
+								  implIDs.put(implID.image, nodeType);
+								}
+																
+    							(
+    							  <COMMA>
+
+    							  [ <EOL> ]			// for VISUAL ASPECTS
+
+    							  implID = <ID>		// <IMPLID>
+
+    							  <COLON>
+
+    							  nodeType = Type()
+    							  {
+    							    implIDs.put(implID.image, nodeType);
+								  }
+								  
+    							)*
+
+
+    							[
+    								LOOKAHEAD(2)
+
+									<EOL>
+
+									abstraction = Abstraction()
+    							]	    
+
+    							// FALTA REFINAMIENTO
+    									
+    {
+		return new RuleRefinement(	specIDs,
+									implIDs,
+									null,		// AGREGAR REFINAMIENTO
+									abstraction
+								  );
+    }
+}
+//********************************************************************************
+ArrayList<String> SpecIDS():
+{
+   Token specID;
+   ArrayList<String> specIDs = new ArrayList<String>();
+}
+{
+	specID = <ID>	//<SPECID>
+	{
+	  specIDs.add(specID.image);
+	}
+	  
+	(
+		<COMMA>
+
+		//AGREGADO
+		(
+	   		<EOL>				// for VISUAL ASPECTS
+		)*
+
+		specID = <ID>	//<SPECID>		
+		{
+		  specIDs.add(specID.image);
+		}
+    )*
+
+	{
+		  return specIDs;
+	}
+}
+//********************************************************************************
+Abstraction	Abstraction():
+{
+	Token		preOperatorSpecID	= new Token();
+	Token		specID;
+   	Token		plCodePreamble		= new Token();
+   	Token		plCodeEquality;
+	Equality	equality;
+	Abstraction	abstraction			= new Abstraction();
+}
+{
+	<ABSTRACTION>
+
+	(
+		[
+
+			<CODE>			// The WORD @PLCODE
+			
+			plCodePreamble = <PLCODE_ABSTRACTION>
+		]
+
+		<SET>
+
+		[
+		    LOOKAHEAD(2)
+		    
+			(
+			  		preOperatorSpecID =	<dom>
+				|	preOperatorSpecID =	<ran>
+				|	preOperatorSpecID =	<cardinal>
+				|	preOperatorSpecID =	<partition>
+			)
+		]
+
+		specID = <ID_ABSTRACTION>		//<SPECID>
+	
+		<AS>
+	
+		plCodeEquality = <PLCODE_ABSTRACTION>
+
+		// <EOL_ABSTRACTION>
+
+		{
+			equality	= new Equality	(
+			  								preOperatorSpecID.image,
+			  								null,					//postOperator
+			  								plCodePreamble.image,
+			  								plCodeEquality.image
+			  							);
+
+			abstraction.addEquality	(
+			    						specID.image,
+			    						equality
+			   						);
+		}
+
+	)*
+
+	<END_ABSTRACTION>
+
+	{
+		return abstraction;
+	}
+}
+//********************************************************************************
+NodeType Type() :
+{ 
+    NodeType nodeType;
+}
+{
+  		nodeType = Synonym()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = PLType()
+		{
+			return nodeType;
+		}
+
+	|	nodeType = Enumeration()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = Array()
+		{
+			return nodeType;
+		}
+
+	|	nodeType = Pointer()
+		{
+		    return nodeType;
+		}
+		
+	|	nodeType = Structure()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = List()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = File()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = DB()
+		{
+			return nodeType;
+		}
+		
+	|	nodeType = RFR()
+		{
+			return nodeType;
+		}
+}
+//********************************************************************************
+NodeSynonym Synonym():
+{
+    Token id;
+}
+{
+    <SYNONYM>
+    id = <ID>
+    {
+       return new NodeSynonym(id.image);
+    }
+}
+//********************************************************************************
+NodePLType PLType():
+{
+    Token id;
+}
+{
+    <PLTYPE> 
+    id = <STRING>
+    {
+		return new NodePLType((id.image).substring(1, (id.image).length() -1));
+    }
+}
+//********************************************************************************
+NodeEnumeration Enumeration():
+{
+    NodePLType					plType;
+    Token						enumerationElement;
+	Token						constant;
+    HashMap<String, String> 	elements	=	new HashMap<String, String>();
+}
+{
+	<ENUMERATION> 
+		(
+	    	<EOL>				// for VISUAL ASPECTS
+	    )*
+	    	
+    	<LBRACKET>
+
+			(
+	    		<EOL>				// for VISUAL ASPECTS
+	    	)*
+
+    	    			
+    		plType	= PLType()
+
+   			(
+				<COMMA>
+
+    			(
+	    			<EOL>				// for VISUAL ASPECTS
+	    		)*
+
+				enumerationElement		=	<ID>		
+	
+				"-->"
+	
+				constant				=	<STRING>
+				
+				{
+				    elements.put	(	enumerationElement.image,
+				    					(constant.image).substring	(	1,
+				    													((constant.image).length() - 1)
+				    												)
+				    				);
+				}
+
+			 )*
+
+		(
+	    	<EOL>				// for VISUAL ASPECTS
+	   	)*
+
+    	<RBRACKET>
+
+    {
+		return new	NodeEnumeration(	plType,
+		  								elements
+		  							);
+    }
+}
+//********************************************************************************
+NodePointer Pointer():
+{
+    NodeType type;
+}
+{
+    <POINTER>
+
+    (
+	   	<EOL>				// for VISUAL ASPECTS
+	)*
+
+    <LBRACKET>
+
+	(
+	   	<EOL>				// for VISUAL ASPECTS
+	)*
+	
+    type = Type()
+
+	(
+	   	<EOL>				// for VISUAL ASPECTS
+	)*
+
+    <RBRACKET>
+
+    {
+        return new NodePointer(type);
+    }
+}
+//********************************************************************************
+NodeArray Array(): 
+{
+    NodeType type;
+    Token s = null;
+    Token lastPositionPointer = null;
+}
+{
+    <ARRAY>
+
+    	(
+	   		<EOL>				// for VISUAL ASPECTS
+		)*
+
+    	<LBRACKET>
+    		(
+	   			<EOL>				// for VISUAL ASPECTS
+			)*
+
+    			type	= Type()
+			
+				[
+		    		<COMMA>
+		    		(
+	   					<EOL>				// for VISUAL ASPECTS
+					)*
+
+		    		s		= <NUMBER>
+				]
+    			
+    		(
+	   			<EOL>				// for VISUAL ASPECTS
+			)*
+		(<COMMA> lastPositionPointer = <ID>)*
+
+    	<RBRACKET>
+    {
+        Integer size = new Integer(s.image);
+	if(lastPositionPointer==null)
+        	return new NodeArray(type, size.intValue());
+	else
+		return new NodeArray(type, size.intValue(), lastPositionPointer.image);
+    }
+}
+//********************************************************************************
+NodeStructure Structure():
+{
+    List<NodeElement> elements = new ArrayList<NodeElement>();
+    NodeElement element;
+    Token id;
+}
+{
+    <STRUCTURE>
+	    (
+			<EOL>				// for VISUAL ASPECTS
+		)*
+    		<LBRACKET>
+	    		(
+		   			<EOL>				// for VISUAL ASPECTS
+				)*
+
+   				id = <ID>
+				(
+					<COMMA>
+
+		    		(
+	   					<EOL>				// for VISUAL ASPECTS
+					)*
+
+					element = Element()
+					{
+					    elements.add(element);
+					}
+				)*
+
+		    	(
+	   				<EOL>				// for VISUAL ASPECTS
+				)*
+
+    		<RBRACKET>
+    {
+		return new NodeStructure(id.image, elements);
+    }
+}
+//********************************************************************************
+NodeElement Element():
+{
+    Token element;
+    NodeType type;
+    Token constant = new Token();
+}
+{
+	    element = <ID>
+		<COLON>
+		type =  Type()
+		
+	    [
+	    	LOOKAHEAD(2)
+	    	<COMMA>
+	    	constant = Constant()
+	    ]
+	    
+	    {
+			if (constant.image != null)
+	      		return new NodeElement(element.image, type, constant.image);
+	      	else
+	      		return new NodeElement(element.image, type);
+	    }
+}
+//********************************************************************************
+Token Constant():
+{
+    Token constant;
+}
+{
+  		constant = <STRING>
+	    {
+	      return constant;
+		}
+}
+//********************************************************************************
+NodeList List():
+{
+
+    List<NodeElement> elements = new ArrayList<NodeElement>();
+    Token id = null;
+    Token linkType = null, listNext = null, listPrevius = null, mem = null;
+    Token listType=null;
+    NodeType type = null;
+    NodeElement element;	// NodeElement field;
+}
+{
+	// Ej:
+	// fede ==> algo : LIST[lista;DLL; next; prev; uno: CTYPE "int"; dos: ARRAY[CTYPE "int"; 98 ]; "funcion en C"]  
+    <LIST>
+    	<LBRACKET>
+    		id = <ID>
+
+// This would be the CODE for C language.			
+    		<COMMA>
+			(((
+			    	linkType = <SLL>	<COMMA>	listNext = <ID>
+			    |	linkType = <DLL>	<COMMA>	listNext = <ID> 	<COMMA> listPrevius = <ID>
+			    |	linkType = <CLL>	<COMMA>	listNext = <ID>
+			    |	linkType = <DCLL>	<COMMA>	listNext = <ID> 	<COMMA> listPrevius = <ID>
+			)
+
+		    (
+		      	LOOKAHEAD(2)
+
+				<COMMA>
+
+				element = Element()
+				{
+					elements.add(element);
+				}
+		    )+
+		    
+		    [<COMMA>	mem = <STRING>])|(listType = <STRING> <COMMA> type = Type()))
+//--------------------------------------------------------------------------------
+    	<RBRACKET>
+    {
+	if (listType==null)
+        	return new NodeList(	id.image,
+        						linkType.image,
+        						listNext.image,
+        						((listPrevius == null)	?
+        													null
+        												:
+        													listPrevius.image),
+        						elements,
+        						((mem == null)			?
+        													null
+        												:
+        													mem.image)
+        					);
+	else
+		return new NodeList(id.image,listType.image.substring(1,listType.image.length()-1),type);
+    }
+    	<RBRACKET>
+
+}
+//********************************************************************************
+NodeFile File():
+{
+    Token name, path, delimiter, eol = null, eof = null, structure = null;
+}
+{
+    <FILE>
+    	<LBRACKET>
+
+    		name = <STRING>
+    		<COMMA>
+
+    		path = <STRING>
+    		<COMMA>
+
+    		delimiter = <STRING>
+
+		    [LOOKAHEAD(2) <COMMA>	<ENDOFLINE>		eol = <STRING>	]
+		    
+		    [LOOKAHEAD(2) <COMMA>	<ENDOFFILE> 	eof = <STRING>	]
+
+		    [LOOKAHEAD(2) <COMMA>	(		structure = <LINEAR>
+		    							|	structure = <RPL>
+		    							|	structure = <FPL>
+		    						)
+		    ]
+  
+    	<RBRACKET>
+    {
+		return new NodeFile(	name.image,
+								path.image,
+								delimiter.image,
+								(eol == null)		?
+															null
+														:
+															eol.image,
+								(eof == null)		?
+															null
+														:
+															eof.image,
+								(structure == null)	?
+															null
+														:
+															structure.image
+							);
+    }
+}
+//********************************************************************************
+NodeDB DB():
+{
+    Token dbmsID, connectionID, tableName, columnID;
+    String columnType;
+    List<NodeDBColumn> columns = new ArrayList<NodeDBColumn>();
+}
+{
+    <DB>
+    	<LBRACKET>
+    		dbmsID 			= <ID>		<COMMA>
+    		connectionID	= <ID>		<COMMA>
+    		tableName		= <ID>
+	    (
+	    	<COMMA>
+	    	columnID = <ID>
+	    	<COLON>
+	    	columnType = columnType()
+	    	{
+	    		NodeDBColumn c = new NodeDBColumn(columnID.image, columnType);
+	            columns.add(c);
+	    	}
+	    )* 
+    	<RBRACKET>
+	    {
+	    	return new NodeDB(	dbmsID.image,
+	    						connectionID.image,
+	    						tableName.image,
+	    						columns
+	    					 );
+	    }
+}
+//********************************************************************************
+String columnType():
+{
+    Token t;
+}
+{
+  		// VER SI HAY QUE MODIFICAR o AGREGAR TIPOS
+	    t = <INT>
+	    {
+	        return t.image;
+	    }
+    |	t = <CHAR>
+	    {
+	        return t.image;
+	    }
+    |	t = <VARCHAR>
+	    {
+	        return t.image;
+	    }
+}
+//********************************************************************************
+NodeRFR RFR():
+{
+    Token lawName, specID;
+}
+{
+    <RFR>
+    	<LBRACKET>
+
+    		lawName = <ID>
+
+    		<COMMA>
+
+    		specID = <ID>
+
+    	<RBRACKET>
+    {
+        return new NodeRFR(lawName.image, specID.image);
+    }
+}
+//********************************************************************************
