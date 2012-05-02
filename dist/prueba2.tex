@@ -1,0 +1,56 @@
+\begin{schema}{C}
+xC, xC': \nat
+\where
+xC = 2 \\
+xC' = xC
+\end{schema}
+
+\begin{schema}{D}
+xD, xD': \nat
+\where
+xD = 3 \\
+xD' = xD
+\end{schema}
+
+\begin{schema}{F}
+xF, xF': \nat
+\where
+xF = 4
+\end{schema}
+
+\begin{schema}{G}
+xG, xG': \nat
+\where
+xG = 5
+\end{schema}
+
+\begin{schema}{H}
+xH, xH': \nat
+\where
+xH = 6
+\end{schema}
+
+
+\begin{schema}{A}
+C \\
+D \\
+xA: \nat
+\where 
+xA = 1
+\end{schema}
+
+
+\begin{zed}
+E == G \land H \\
+B == E \lor F
+\end{zed}
+
+
+\begin{schema}{Op}
+A \\
+B \\
+xOp: \nat
+\where
+xOp = 7
+\end{schema}
+

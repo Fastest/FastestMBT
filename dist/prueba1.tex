@@ -1,0 +1,34 @@
+\begin{schema}{StateA}
+xA: \nat
+\where
+xA = 1
+\end{schema}
+
+\begin{schema}{StateB}
+xB: \nat
+\where
+xB = 2
+\end{schema}
+
+\begin{schema}{A}
+\Delta StateA
+\end{schema}
+
+\begin{schema}{B}
+\Delta StateB
+\where 
+xB = 3
+\end{schema}
+
+\begin{schema}{D}
+xD: \nat \\
+xD': \nat
+\where 
+xD = 4
+\end{schema}
+
+\begin{zed}
+C == A \lor B \\
+E == C \lor D
+\end{zed}
+

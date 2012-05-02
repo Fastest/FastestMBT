@@ -1,0 +1,38 @@
+\begin{rwRule}{MembershipEquivalences}{px: \power X; x1: X; x2: Y}
+x1 \in px \\
+\{ x1 \} \subseteq px \\
+\{ x1 \} \cap px \neq \{ \} \\
+px \cap \dom \{ x1 \mapsto x2 \} \neq \{ \} \\
+\lnot px \subset \dom \{ x1 \mapsto x2 \} \\
+\dom \{ x1 \mapsto x2 \} \subseteq px
+\end{rwRule}
+
+\begin{rwRule}{NotMembershipEquivalences}{px: \power X; x: X; y: Y}
+x \notin px \\
+\{ x \} \cap px = \{ \} \\
+\lnot \{ x \} \subseteq px \\
+px \cap \dom \{ x \mapsto y \} = \{ \} \\
+\lnot \dom \{ x \mapsto y \} \subseteq px \\
+px \neq \dom \{ x \mapsto y \}
+\end{rwRule}
+
+\begin{rwRule}{EmptyRelEquivalences}{r: X \rel Y}
+r = \{ \} \\
+r = \langle \rangle \\
+\# r = 0 \\
+\dom r = \{ \} \\
+\ran r = \{ \} \\
+\# \dom r = 0 \\
+\# \ran r = 0
+\end{rwRule}
+
+\begin{rwRule}{NotEmptyRelEquivalences}{r: X \rel Y}
+r \neq \{ \} \\
+r \neq \langle \rangle \\
+\# r > 0 \\
+\dom r \neq \{ \} \\
+\ran r \neq \{ \} \\
+\# \dom r > 0 \\
+\# \ran r > 0
+\end{rwRule}
+

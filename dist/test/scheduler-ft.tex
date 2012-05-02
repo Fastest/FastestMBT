@@ -1,0 +1,293 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage{multicol}
+\usepackage[latin1]{inputenc}
+\usepackage[dvips]{geometry}
+\usepackage{czt}
+\usepackage{dirtree}
+\usepackage[pdftex,colorlinks,linkcolor=blue]{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage[cm]{fullpage}
+
+\newcommand*{\ra}{\rightarrow}
+%\newenvironment{machine}[1]{
+%\begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+%\\ \textbf{\kern-1em end} \end{tabular} }
+
+\newenvironment{desig}{\begin{list}{}{\setlength{\labelsep}{0cm}\setlength{\labelwidth}{0cm}\setlength{\listparindent}{0cm}\setlength{\rightmargin}{\leftmargin}}}{\end{list}}
+
+\title{Formal Specification and Results of Applying Model-Based Testing to a Process Scheduler}
+
+\author{Maximiliano Cristiá\\ {\tt cristia@cifasis-conicet.gov.ar} \\CIFASIS \\ Universidad Nacional de Rosario \\ Flowgate Security Consulting \\ Argentina}
+
+\date{April, 2009}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document describes a Z model of the process scheduler described in \cite{Utting00}. Also, this report documents the results of applying Model-Based Testing (MBT) from the Z model, but only up to the step where abstract test cases are generated (including pruning the test tree). MBT was applied using Fastest, a tool developed co-jointly between CIFASIS\footnote{Centro Internacional Franco-Argentino de Ciencias de la Información y Sitemas -- Rosario -- Argentina.} and Flowgate Security Consulting\footnote{{\tt http://www.flowgate.net}}.
+\end{abstract}
+
+\tableofcontents
+
+\section{The Z Model}
+
+We consider the requirements introduced in \cite{Utting00} in section 6.2 and the B model developed in the same book in section 6.2.2. The following model is more a translation from the B model than a formalization of the requirements set there. We will be rather moderate in our comments, introducing them just to point out the differences of our model with respect to the B model, since the reader could find them in Utting and Legeard's book.
+
+The set of process ID's is introduced as a basic type rather than as an extension as done in \cite{Utting00}. Latter we will define a bound that represents the finiteness of the scheduler's process table.
+
+\begin{zed}
+[PID]
+\end{zed}
+
+We change the type name $STATE$ by $\mathsf{PSTATUS}$ and in our model it has only two elements.
+
+\begin{zed}
+PSTATUS ::= waiting | ready
+\end{zed}
+
+\begin{zed}
+EXCEPTION ::= \\
+  \t1 ok | memoryFull | alreadyExists | busyProcess | unknownProcess | noActiveProcess
+\end{zed}
+
+\begin{zed}
+BIN ::= yes | no
+\end{zed}
+
+Since Z does not have an operator like B's $\mathsf{ANY}$ we introduce the following which will remain underspecified. The idea behind $chose$ is that it picks an arbitrary element of the set it receives; there is no nondeterminism in $chose$'s definition. Besides, when MBT will be performed it will be included as a state variable because Fastest does not support axiomatic definitions, yet.
+
+%\begin{axdef}
+%chose: \power PID \fun PID
+%\end{axdef}
+
+Since the scheduler's process table has room for six processes we define a bound and set it to six as was done by Utting and Legeard when they define the set $\mathsf{PID}$.
+
+%\begin{axdef}
+%maxProcs: \nat
+%\where
+%maxProcs = 6
+%\end{axdef}
+
+Opposed to the B model developed by Utting and Legeard ours has more state variables because we want to make some states more explicit. $procs$ will hold the set of processes in $waiting$ or $ready$ status; $current$ will record the active process and $idle$ will tell whether there is an active process or the computer is idle, regardless of the value of $current$.
+
+\begin{schema}{Scheduler}
+procs: PID \pfun PSTATUS \\
+current: PID \\
+idle: BIN
+\end{schema}
+
+%\begin{schema}{SchedulerInv}
+%Scheduler
+%\where
+%idle = no \implies current \notin \dom procs \\
+%\# \dom procs \leq maxProcs
+%\end{schema}
+
+\begin{schema}{SchedulerInit}
+Scheduler
+\where
+procs = \emptyset \\
+idle = yes
+\end{schema}
+
+\begin{schema}{NewOk}
+\Delta Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \notin \dom procs \\
+procs' = procs \cup \{p? \mapsto waiting\} \\
+current' = current \\
+idle' = idle \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{NewE1}
+\Xi Scheduler \\
+p?:PID \\
+maxProcs: \nat \\
+rep!:EXCEPTION
+\where
+p? \in \dom procs \\
+\# \dom procs < maxProcs \\
+maxProcs = 6 \\
+rep! = alreadyExists
+\end{schema}
+
+\begin{schema}{NewE2}
+\Xi Scheduler \\
+maxProcs: \nat \\
+rep!:EXCEPTION
+\where
+\# \dom procs = maxProcs \\
+maxProcs = 6 \\
+rep! = memoryFull
+\end{schema}
+
+\begin{zed}
+New == NewOk \lor NewE1 \lor NewE2
+\end{zed}
+
+\begin{schema}{DelOk}
+\Delta Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \in \dom (procs \nrres \{waiting\}) \\
+procs' = \{p?\} \ndres procs \\
+current' = current \\
+idle' = idle \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{DelE1}
+\Xi Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \notin \dom procs \\
+rep! = unknownProcess
+\end{schema}
+
+\begin{schema}{DelE2}
+\Xi Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \in \dom procs \\
+procs~p? = waiting \\
+rep! = busyProcess
+\end{schema}
+
+\begin{zed}
+Del == DelOk \lor DelE1 \lor DelE2
+\end{zed}
+
+\begin{schema}{ReadyOk1}
+\Delta Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+idle = no \\
+p? \in \dom procs \\
+procs~p? = waiting \\
+procs' = procs \oplus \{p? \mapsto ready\}\\
+current' = current \\
+idle' = idle \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{ReadyOk2}
+\Delta Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+idle = yes \\
+p? \in \dom procs \\
+procs~p? = waiting \\
+procs' = \{p?\} \ndres procs \\
+current' = p? \\
+idle' = no \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{ReadyE1}
+\Xi Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \notin \dom procs \\
+rep! = unknownProcess
+\end{schema}
+
+\begin{schema}{ReadyE2}
+\Xi Scheduler \\
+p?:PID \\
+rep!:EXCEPTION
+\where
+p? \in \dom procs \\
+procs~p? \neq waiting \\
+rep! = busyProcess
+\end{schema}
+
+\begin{zed}
+Ready == ReadyOk1 \lor ReadyOk2 \lor ReadyE1 \lor ReadyE2
+\end{zed}
+
+\begin{schema}{SwapOk1}
+\Delta Scheduler \\
+chose: \power PID \fun PID \\
+rep!:EXCEPTION
+\where
+idle = no \\
+ready \in \ran procs \\
+procs' = 
+  \{chose(\dom(procs \rres \{ready\}))\} \ndres procs 
+  \cup \{current \mapsto waiting\}\\
+current' = chose(\dom(procs \rres \{ready\})) \\
+idle' = idle \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{SwapOk2}
+\Delta Scheduler \\
+rep!:EXCEPTION
+\where
+idle = no \\
+ready \notin \ran procs \\
+procs' = procs \cup \{current \mapsto waiting\}\\
+idle' = yes \\
+current' = current \\
+rep! = ok
+\end{schema}
+
+\begin{schema}{SwapOk3}
+\Xi Scheduler \\
+rep!:EXCEPTION
+\where
+idle = yes \\
+rep! = ok
+\end{schema}
+
+\begin{zed}
+Swap == SwapOk1 \lor SwapOk2 \lor SwapOk3
+\end{zed}
+
+\begin{schema}{DisplayOk1}
+\Xi Scheduler \\
+ap!, wp!, rp!: \power PID 
+\where
+idle = no \\
+ap! = \{current\} \\
+wp! = \dom (procs \rres \{waiting\}) \\
+rp! = \dom (procs \rres \{ready\})
+\end{schema}
+
+\begin{schema}{DisplayOk2}
+\Xi Scheduler \\
+ap!, wp!, rp!: \power PID 
+\where
+idle = yes \\
+ap! = \emptyset \\
+wp! = \dom (procs \rres \{waiting\}) \\
+rp! = \dom (procs \rres \{ready\})
+\end{schema}
+
+\begin{zed}
+Display == DisplayOk1 \lor DisplayOk2
+\end{zed}
+
+
+\section{Results of Applying MBT to the Scheduler}
+
+\section{Conclusions and Future Work}
+
+
+\bibliographystyle{alpha}
+\bibliography{/home/mcristia/flowgate/institucional/biblio}
+
+
+\end{document}

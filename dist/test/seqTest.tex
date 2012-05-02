@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+\begin{zed}
+  [DNI]
+\end{zed}
+
+
+
+\begin{schema}{TClass}
+	a: \seq \nat
+\where
+	a = \langle \rangle	
+
+\end{schema}
+
+
+\begin{schema}{TClass}
+	a: \seq \nat
+\where
+	a = \emptyset[\nat \cross \nat]
+
+\end{schema}
+
+
+\begin{schema}{TClass}
+	a: \seq \nat
+\where
+	\langle 1,2,3 \rangle = \langle 2,5 \rangle
+
+\end{schema}
+
+
+\begin{schema}{TClass}
+	a: \seq \nat
+\where
+	\langle 1 \rangle~=~\langle 1 \rangle
+
+\end{schema}
+
+\begin{schema}{TClass}
+	a: \seq \nat
+\where
+	\langle 1 \rangle = \langle 1 \rangle
+
+\end{schema}
+
+\end{document} 
+ 

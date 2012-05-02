@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{czt}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+\begin{zed}
+ [DNI] 
+\end{zed}
+
+
+\begin{zed}
+  DINERO == \num
+\end{zed}
+
+
+\begin{zed} 
+    MENS ::= ok | error1 | error2
+\end{zed}
+
+
+\begin{schema}{CajasAhorroBanco}
+ ca: DNI \pfun DINERO
+\end{schema}
+
+
+\begin{schema}{ExtraerOk}
+ \Delta CajasAhorroBanco \\
+ d?: DNI \\
+ m?: DINERO \\
+ rep!: MENS \\
+\where
+ d? \in \dom ca \\
+ m? > 0 \\
+ m? \leq ca(d?) \\
+ m? > 1000 \implies ca(d?) > 10000 \\
+ ca' = ca \oplus \{d? \mapsto ca(d?) - m? \} \\
+ rep! = ok
+
+\end{schema}
+
+
+\begin{schema}{ExtraerE1}
+ \Xi CajasAhorroBanco \\
+ d?: DNI \\
+ m?: DINERO \\
+ rep!: MENS \\
+\where
+\lnot(d? \in \dom ca \land m? \leq ca(d?) \land 0 < m? < 100000) \\
+rep! = error1
+\end{schema}
+
+
+\begin{schema}{ExtraerE2}
+ \Xi CajasAhorroBanco \\
+ d?: DNI \\
+ m?: DINERO \\
+ rep!: MENS 
+\where
+ d? \in \dom ca \\
+ \lnot(m? > 1000 \implies ca(d?) > 10000) \\
+ rep! = error2
+\end{schema}
+
+
+\begin{zed}
+  Extraer == ExtraerOk \lor ExtraerE1 \lor ExtraerE2
+\end{zed}
+
+
+\end{document}

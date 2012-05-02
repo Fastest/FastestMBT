@@ -1,0 +1,26 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+% Esta clase de prueba fue definida para testear la generacion de casos de pruebas usando la estrategia de generacion ImprovedIterativeTCaseStrategy, en comparacion con IterativeTCaseStrategy. En particular, lo que se quiere apreciar es la mayor eficiencia de la primera de ellas, debido a que ImprovedTCaseStrategy no itera sobre valores de las variables declaradas que no aparezcan en el predicado, mientras que IterativeTCaseStrategy si itera sobre valores de estas variables.
+
+\begin{document}
+
+
+\begin{schema}{ExtraerE1}
+ ca: \num \pfun \num \\
+ d?: \num \\
+ m?: \num \\
+ \where
+d? > 0
+\end{schema}
+
+
+\end{document} 
+ 
+
+
+

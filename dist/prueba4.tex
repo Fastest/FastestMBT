@@ -1,0 +1,57 @@
+\begin{schema}{StateA}
+xA: \nat
+\where
+xA = 1
+\end{schema}
+
+
+
+\begin{schema}{A}
+xA, xA': \nat
+\where
+StateA \land xA = 10 \\
+xA' = xA
+\end{schema}
+
+
+
+\begin{schema}{B}
+xB, xB': \nat
+\where
+xB = 4 \iff xB' = 3
+\end{schema}
+
+
+
+
+\begin{schema}{C}
+xC: \nat \\
+xB, xB': \nat
+\where
+B \implies xC = 5
+\end{schema}
+
+
+
+\begin{schema}{D}
+xD, xD': \nat \\
+xA, xA': \nat
+\where
+\Delta StateA \land xD = 2
+\end{schema}
+
+
+
+\begin{schema}{E}
+xE, xE': \nat \\
+xC: \nat \\
+xB, xB': \nat \\
+A
+\where
+C \lor xE = 4
+\end{schema}
+
+
+\begin{zed}
+F == A \lor C
+\end{zed}

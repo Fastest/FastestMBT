@@ -1,0 +1,5 @@
+loadspec /home/pmonetti/Desktop/prueba2.tex
+selop B
+genalltt
+showtt
+quit

@@ -1,0 +1,17 @@
+\BOOKMARK [1][-]{section.1}{Introduction to Model-Based Testing}{}
+\BOOKMARK [1][-]{section.2}{FASTEST Architecture in a Nutshell}{}
+\BOOKMARK [1][-]{section.3}{An Example}{}
+\BOOKMARK [2][-]{subsection.3.1}{The Z Formal Specification Language}{section.3}
+\BOOKMARK [2][-]{subsection.3.2}{Generating the Test Tree}{section.3}
+\BOOKMARK [2][-]{subsection.3.3}{Finding Abstract Test Cases}{section.3}
+\BOOKMARK [2][-]{subsection.3.4}{The FASTEST Script}{section.3}
+\BOOKMARK [3][-]{subsubsection.3.4.1}{Adding One More Level to the Test Tree}{subsection.3.4}
+\BOOKMARK [1][-]{section.4}{User's Manual}{}
+\BOOKMARK [2][-]{subsection.4.1}{Installing and executing FASTEST}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Steps of a testing campaign}{section.4}
+\BOOKMARK [2][-]{subsection.4.3}{Command description}{section.4}
+\BOOKMARK [3][-]{subsubsection.4.3.1}{Basic commands}{subsection.4.3}
+\BOOKMARK [3][-]{subsubsection.4.3.2}{Selecting and defining testing tactics}{subsection.4.3}
+\BOOKMARK [3][-]{subsubsection.4.3.3}{Defining finite models}{subsection.4.3}
+\BOOKMARK [2][-]{subsection.4.4}{Generating test trees and abstract test cases}{section.4}
+\BOOKMARK [2][-]{subsection.4.5}{Exploring the specification and test trees}{section.4}

@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+\begin{zed}
+  [DNI]
+\end{zed}
+
+
+\begin{schema}{TClass}
+ca: DNI \pfun \num \\
+d?: DNI \\
+m?: \num
+\where 
+d? \in \dom ca \\ 
+m? > 0 \\ 
+m? \leq ca(d?) \\
+m? > 1000 \implies ca(d?) > 10000 \\
+
+\end{schema}
+
+
+\end{document} 
+ 

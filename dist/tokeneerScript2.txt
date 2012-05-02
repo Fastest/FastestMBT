@@ -1,0 +1,9 @@
+loadspec tokeneer4.tex
+selop AddElementsToLog
+selop AdminStartOp
+selop ValidateOpRequest
+selop NoOpRequest
+genalltt
+showtt -o trees.txt
+showsch -tcl -o classes.txt
+quit

@@ -1,0 +1,5 @@
+Probar en este orden:
+
+1ero) 	fromTo		int		nat		given		freeType
+2do)	prod		power
+3ero)	rel 		tfunc		pfunc

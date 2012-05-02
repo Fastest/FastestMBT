@@ -1,0 +1,279 @@
+\begin{theorem}{NatDef}{n: \nat}
+\lnot 0 \leq n
+\end{theorem}
+
+%Teoremas para sensors
+
+\begin{theorem}{ExtensionalUndefinition}{f: X \pfun Y; x: X}
+x \notin \dom f \\
+\sw( f~x ) \\
+\end{theorem}
+
+\begin{theorem}{ArithmIneq1}{\const N: \nat; n, m: \num}
+n \leq m \\
+m < N \\
+n = N
+\end{theorem}
+
+\begin{theorem}{ArithmIneq2}{\const N: \nat; n, m: \num}
+n \leq m \\
+m < N \\
+n > N
+\end{theorem}
+
+\begin{theorem}{ArithmIneq3}{\const N: \nat; n, m: \num}
+n \leq m \\
+m = N \\
+n > N
+\end{theorem}
+
+%Teoremas para symbolTable
+
+\begin{theorem}{SingletonNotSet}{A:\power X; x:X}
+x \notin A \\
+\{ x \} = A
+\end{theorem}
+
+\begin{theorem}{BasicMembershipContradiction}{A:\power X; x:X}
+x \in A \\
+x \notin A
+\end{theorem}
+
+\begin{theorem}{NotInEmptySet}{A:\power X; x:X}
+x \in A \\
+A = \{ \}
+\end{theorem}
+
+\begin{theorem}{SingletonIsNotEmpty}{x:X}
+\{ x \} = \{ \}
+\end{theorem}
+
+\begin{theorem}{NotSubsetOfSingleton}{A:\power X; x:X}
+A \neq \{ \} \\
+A \subset \{ x \} 
+\end{theorem}
+
+\begin{theorem}{NotSubsetOfSingletonMapplet}{R: X \rel Y; x:X; y:Y}
+R \neq \{ \} \\
+\dom R \subset \dom \{ x \mapsto y \} 
+\end{theorem}
+
+\begin{theorem}{SingletonNotSubset}{A:\power X; x:X}
+x \notin A \\
+\{ x \} \subset A
+\end{theorem}
+
+%Duda
+\begin{theorem}{DomNotSubsetOfSingleton}{R: X \rel Y; x:X}
+R \neq \{ \} \\
+\dom R \subset \{ x \} 
+\end{theorem}
+
+%Duda
+\begin{theorem}{NotInEmptyDom}{R: X \rel Y; x:X}
+x \in \dom R \\
+R = \{ \}
+\end{theorem}
+
+%Teoremas para lift
+
+\begin{theorem}{BasicOrderingProperty}{n, m: \num}
+n \neq m \\
+\lnot n < m \\
+\lnot n > m
+\end{theorem}
+
+%Teoremas para bank
+
+\begin{theorem}{UndefinitionByEmptiness}{f: X \pfun Y}
+f = \{ \} \\
+\sw( f~\anything ) \\
+\end{theorem}
+
+\begin{theorem}{SingletonMappletNotInDom}{R: X \rel Y; x:X; y: Y}
+x \notin \dom R \\
+\dom \{ x \mapsto y \} = \dom R
+\end{theorem}
+
+\begin{theorem}{SingletonNotSubsetDom}{R: X \rel Y; x: X; y: Y}
+x \notin \dom R \\
+\dom \{ x \mapsto y \} \subset \dom R
+\end{theorem}
+
+%Teoremas para scheduler
+
+\begin{theorem}{NrresEmptyRel}{R: X \rel Y; A: \power Y; x: X}
+x \in \dom (R \nrres A) \\
+R = \{ \}
+\end{theorem}
+
+\begin{theorem}{NrresCap}{R: X \rel Y; A: \power Y; x: X}
+x \in \dom (R \nrres A) \\
+\{ x \} \cap \dom R = \{ \}
+\end{theorem}
+
+\begin{theorem}{CardDomEmptyRel}{R: X \rel Y; \const N, n: \nat}
+\eval( N > 0 ) \\
+R = \{ \} \\
+n = N \\
+\# \dom R = n
+\end{theorem}
+
+\begin{theorem}{CardRelSingleton}{R: X \rel Y; \const N, n: \nat; r: X \cross Y}
+\eval( N > 1 ) \\
+n = N \\
+\# \dom R = n \\
+\{ r \} = R
+\end{theorem}
+
+\begin{theorem}{SingletonMappletNotEqualRel1}{R: X \rel Y; x: X; y: Y}
+x \notin \dom R \\
+\{ x \mapsto y \} = R
+\end{theorem}
+
+\begin{theorem}{SingletonNotSubsetRel}{R: X \rel Y; x: X; y: Y}
+x \notin \dom R \\
+\{ x \mapsto y \} \subset R
+\end{theorem}
+
+%Duda
+\begin{theorem}{NotInEmptyRan}{R: X \rel Y; y:Y}
+y \in \ran R \\
+R = \{ \}
+\end{theorem}
+
+\begin{theorem}{SingletonMappletNotEqualRel2}{R: X \rel Y; x: X; \const y1, \const y2: Y}
+y1 \in \ran R \\
+\{ x \mapsto y2 \} = R
+\end{theorem}
+
+\begin{theorem}{BasicSetContradiction}{A: \power X}
+A = \{ \} \\
+A \neq \{ \}
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddleSingleton}{A: \power X; \const x, \const y: X}
+\{ x \} = A \\
+\{ y \} = A
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddleSingletonSub1}{A: \power X; \const x, \const y: X}
+\{ x \} = A \\
+\{ y \} \subset A
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddleSingletonSub2}{A: \power X; \const x, \const y: X}
+\{ x \} = A \\
+A  \subset \{ y \}
+\end{theorem}
+
+%Duda
+\begin{theorem}{RanNotSubsetOfSingleton}{R: X \rel Y; y:Y}
+R \neq \{ \} \\
+\ran R \subset \{ y \} 
+\end{theorem}
+
+%Teoremas para plavis
+
+\begin{theorem}{SetComprNotEmpty1}{\const N: \num; A: \power X}
+\eval( N < 2 )
+A \neq \{ \} \\
+\{ \anything : N \upto \# A @ \anything \} = \{ \}
+\end{theorem}
+
+\begin{theorem}{SetComprNotASeq4}{s: \seq X; n: \nat}
+n = 0 \\
+s \neq \{ \} \\
+\dom s = \dom \{ i : 1 \upto \anything @ i + n - 1 \mapsto \anything \}
+\end{theorem}
+
+\begin{theorem}{SetComprNotASeq5}{s: \seq X; n: \nat}
+n = 0 \\
+s \neq \{ \} \\
+\dom \{ i : 1 \upto \anything @ i + n - 1 \mapsto \anything \} \subset \dom s
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty}{n, \const N, \const M: \nat}
+\eval( N \leq M ) \\
+n + N \upto ( n + M ) = \{ \}
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddle}{x, \const y, \const z: X}
+x = y \\
+x = z
+\end{theorem}
+
+%Teoremas para QSEE
+
+\begin{theorem}{SetComprIsEmpty1}{R: X \rel Y}
+R = \{ \} \\
+\{ \anything : \dom R @ \anything \} \neq \{ \}
+\end{theorem}
+
+\begin{theorem}{CapSubsetEmpty}{A, B: \power X}
+A \neq \{ \} \\
+A \cap B = \{ \} \\
+A \subset B
+\end{theorem}
+
+\begin{theorem}{CapEqEmpty}{A, B: \power X}
+A \neq \{ \} \\
+A \cap B = \{ \} \\
+A = B
+\end{theorem}
+
+\begin{theorem}{CapEmpty}{A, B: \power X}
+A = \{ \} \\
+A \cap B \neq \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty2}{\const N, \const M: \nat}
+\eval( N < M ) \\
+N \upto M = \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty3}{n, m, \const N, \const M: \nat}
+n + ( m * N ) \upto ( n + ( ( m + M ) * N ) ) = \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotSubset}{n, m, \const N, \const M, \const P, \const Q: \nat}
+\eval( M - N > Q * P ) \\
+N \upto M \subset n + ( m * P ) \upto ( n + ( ( m + Q ) * P ) )
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEq}{n, m, \const N, \const M, \const P, \const Q: \nat}
+\eval( M - N > Q * P ) \\
+N \upto M = n + ( m * P ) \upto ( n + ( ( m + Q ) * P ) )
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty5}{n, m, \const P, \const Q: \nat}
+\eval( Q * P > 0 ) \\
+n + ( m * P ) \upto ( n + ( ( m + Q ) * P ) ) = \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty4}{n, m: \nat}
+n \upto ( n + m ) = \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotSubset2}{n, \const N, \const M, \const P: \nat}
+\eval( M - N > P ) \\
+N \upto M \subset ( n \upto ( n + P ) )
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEq2}{n, \const N, \const M, \const P: \nat}
+\eval( M - N > P ) \\
+N \upto M = ( n \upto ( n + P ) )
+\end{theorem}
+
+\begin{theorem}{NatRangeNotSubset3}{n, m, p, \const N, \const M, \const P, \const Q: \nat}
+\eval( M - N > Q * P ) \\
+m \leq ( n + Q ) * P \\
+N \upto M \subset p + ( n * P ) \upto ( p + m )
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEq3}{n, m, p, \const N, \const M, \const P, \const Q: \nat}
+\eval( M - N > Q * P ) \\
+m \leq ( n + Q ) * P \\
+N \upto M = p + ( n * P ) \upto ( p + m )
+\end{theorem}
+

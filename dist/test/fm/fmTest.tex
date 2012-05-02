@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+
+\begin{zed}
+ [DNI] 
+\end{zed}
+
+
+\begin{zed}
+  DINERO == \num
+\end{zed}
+
+
+\begin{zed}
+  EDAD == \nat
+\end{zed}
+
+
+\begin{zed} 
+    MENS ::= ok | error1 | error2
+\end{zed}
+
+
+\begin{zed}
+  EQUIPO == \power DNI
+\end{zed}
+
+
+\begin{zed}
+  FUN == \nat \rel \nat
+\end{zed}
+
+\end{document} 

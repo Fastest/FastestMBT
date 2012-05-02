@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+
+\begin{schema}{Prueba}
+ a: \num \\
+ b: \num \\
+ b': \num \\
+\where
+((a=1 \iff a=2) \lor a=3) \implies a=4
+\end{schema}
+
+
+El predicado del esquema anterior, en DNF, es:
+\begin{center}
+ $ a=1 \land \lnot a=2 \land \lnot a=3 $\\
+ $ \lor a=2 \land \lnot a=1 \land \lnot a=3  $\\
+ $ \lor a=4$
+\end{center}
+
+
+El predicado del esquema anterior, en CNF, es:
+\begin{center}
+ $ a=1 \lor a=2 \lor a=4 $\\
+ $ a=1 \lor \lnot a=1 \lor a=4 $ \\
+ $ \lnot a=2 \lor a=2 \lor a=4 $ \\
+ $ \lnot a=2 \lor \lnot a=1 \lor a=4 $\\
+ $ \lnot a=3 \lor a=4 $
+\end{center}
+
+
+\end{document}

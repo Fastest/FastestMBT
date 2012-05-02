@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{czt}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+\newcommand{\machineInit}{\\ \textbf{\kern-1em init} \\}
+\newcommand{\machineOps}{\\ \textbf{\kern-1em ops} \\}
+
+
+\begin{document}
+
+
+
+
+
+\begin{schema}{TClass}
+a: \num \\
+\where
+a =  \negate 1
+\end{schema}
+
+
+
+\begin{schema}{BirthdayBook}
+    known: \num \\
+\where
+    known= 1
+\end{schema}
+
+
+
+
+
+\end{document} 
+ 

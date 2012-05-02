@@ -1,0 +1,184 @@
+\section{User's Manual}
+
+\subsection{Installing and executing FASTEST}
+
+FASTEST works in both Linux and MS-Windows environments. It requires a Java SE Runtime Environment 1.6 or superior. To install the tool, just uncompress and unarchive the file fastest.tar.gz in any folder of your choice. To run FASTEST, open a command window, move to the folder where you installed it, and run the following command:
+
+\begin{verbatim}
+java -jar fastest.jar
+\end{verbatim}
+
+FASTEST then opens a FTP-like user interface where you can run commands. To leave the program you can issue \verb+quit+; also note that \verb!Ctrl+C! kills the program making all your data and commands to be lost --future versions will be more robust.
+
+\subsection{Steps of a testing campaign}
+
+Roughly speaking, currently, a FASTEST testing campaign can be decomposed in the following steps:
+
+\begin{enumerate}
+\item Load the specification 
+
+\item Select the operations to be tested
+
+\item\mbox{} [Optional] Select a list of testing tactics to be applied to each operation
+
+\item\mbox{} [Optional] Instruct FASTEST on how to generate finite models to find abstract test cases
+
+\item Run the command to either calculate all the test trees or all the abstract test cases
+\end{enumerate} 
+
+Also, at any time you can run commands to explore the specification and the test trees. 
+
+Although the third step is optional, in only very trivial situations you will not use it. In fact, it is perhaps the most relevant step of all since it will determine how revealing and leafy your test trees are going to be.
+
+Note that, currently, you must run all the commands of steps 3 and 4 before step 5 because once you have launched the commands of the last step, FASTEST will not allow you to run more commands of the previous steps.
+
+\subsection{Command description}
+
+\subsubsection{Basic commands}
+
+\begin{itemize}
+\item The command \verb+help+ might provide some help about the other available commands.
+
+\item The specification is loaded by executing \verb+loadspec+ followed by a file name; you must write the full path to the file if it is not located in the installation directory. 
+
+It is assumed that the file is a legal Latex file. 
+
+If the specification contains syntactic or type errors it will not be loaded and the errors will be informed.
+
+\item \verb+selop+ selects an operation (of the Z model) to be ``tested''. You can select as many operation as you wish, but you have to run the command for each of them.
+\end{itemize}
+
+\subsubsection{Selecting and defining testing tactics}
+
+The command \verb+addtactic+ allows you to add a testing tactic to the list of tactics to be applied to a particular (previously selected) operation. Initially, the list of tactics of any operation includes only the tactic named Disjunctive Normal Form (see below).
+
+The command syntax is rather complex because it depends on the tactic you want to apply. The base syntax is 
+
+\begin{center}
+\verb+addtactic op_name tactic_name parameters+
+\end{center}
+
+where \verb+op_name+ is the name of a selected (Z) operation, \verb+tactic_name+ is the name of a tactic supported by FASTEST, and \verb+parameters+ is a list of parameters that depends on the tactic.
+
+Currently the following tactics are supported: Disjunctive Normal Form (but this is applied by default and you must not add it), \verb+SP+ for Standard Partition and \verb+FT+ for Free Type. Their syntax and semantics are as follows.
+
+\begin{itemize}
+\item Disjunctive Normal Form. This tactic is applied by default and you must not select it with \verb+addtactic+. By applying this tactic the operation is written in Disjunctive Normal Form and the $VIS$ is divided in as many test classes as terms are in the operation's predicate. The predicate added to each class is the precondition of one of the terms in the operation's predicate.
+
+\item Standard Partition. This tactic uses a predefined partition of some mathematical operator (see ``Standard domains for Z operators'' at page 165 of Stocks' PhD thesis). 
+
+Take a look at file \verb+./fastest/lib/conf/stdpartition.spf+ to see what standard partitions are delivered with FASTEST and how to define new ones (you need to restart FASTEST if you do so).
+
+In this case the command is
+
+\begin{center}
+\verb+addtactic op_name SP operator expression+
+\end{center}
+
+where \verb+operator+ is the Latex-CZT string of a Z operator and \verb+expression+ is a Z expression written in Latex-CZT. It is assumed that \verb+operator+ appears in the \verb+expression+ and this in turn appears in the predicate of the selected operation. 
+
+Hence, you can apply this tactic to different operators and different expressions of the same operation.
+
+\item Free Type. This tactic generates as many test classes as elements a free type (enumerated) has. In other words if your model has type $COLOUR ::= red | blue | green$ and some operation uses $c$ of type $COLOUR$, then by applying this tactic you will get three test classes: one in which $c$ equals $red$, the other in which $c$ equals $blue$, and the third where $c$ equals $green$.
+
+In this case the command is
+
+\begin{center}
+\verb+addtactic op_name FT variable+
+\end{center}
+
+where \verb+variable+ is the name of a variable whose type is a free type.
+
+Currently, Free Type works only if the free type is actually an {\it enumerated} type, i.e. a type without induction.
+\end{itemize}
+
+\subsubsection{Defining finite models}
+
+As we explained in section \ref{fatc}, FASTEST calculates abstract test cases by generating a finite model for each leaf test class. This finite model is the Cartesian product between one finite set for each variable appearing in the predicate of the test class. Clearly, the bigger the finite model the more chances to find an abstract test case, but the more time it will take. Then, the best strategy here is to help FASTEST to select the most promising and smallest finite model.
+
+FASTEST allows the user to define the strategy for generating a finite model at the test class level; in other words, you can define a different strategy for each test class.
+
+If the user do not take any explicit action, FASTEST generates a default finite model that we believe is the best option in most situations. These finite models are constructed from specific finite sets selected for all basic and enumerated types, $\nat$ and $\num$. All these finite sets have three elements, except for enumerated types for which FASTEST defines sets with the same number of elements than the type. The default sets for $\nat$ and $\num$ are $\{0,1,2\}$ and $\{-1,0,1\}$, respectively.
+
+Currently, FASTEST allows the user to select the number of elements of the finite sets of type $\nat$, $\num$ and the given types, that will be used to generate the finite model. Also, for $\num$ and $\nat$ it is possible to select what elements the finite sets are going to include. The basic command for selecting the strategy is as follows:
+
+\begin{center}
+\verb+settcasestrategy strategy_name tclass_name set_size parameters+
+\end{center}
+
+\noindent where \verb+strategy_name+ can be either \verb+Complete+ or \verb+Iterative+, but we strongly recommend to always use \verb+Iterative+. \verb+tclass_name+ is the name of a test class in some test tree and \verb+set_size+ is a natural number telling how many elements the finite sets of type $\nat$ or $\num$, present in that class, will have. It is very important to remark that \verb+set_size+ has a tremendous impact on the size of the finite model for the test class because functions, relations, sequences and other structured types are built from those sets. For instance, if a test class contains a variable of type $\num \pfun \num$ and the user has set \verb+set_size+ to, say, 5, then FASTEST will generate all the partial functions from \{-2,-1,0,1,2\} onto itself, and then it will evaluate the test class predicate over all of the combinations between the values of all the variables in the $VIS$. This can be a really huge number of combinations. It can take days to perform all of these evaluations if the predicate is moderately complex.
+
+The last parameter, namely \verb+parameters+, can be used only when \verb+strategy_name+ is equal to \verb+Iterative+. In this case, the command is:
+
+\begin{center}
+\verb+settcasestrategy Iterative tclass_name set_size -int OPT | -nat OPT+
+\end{center}
+
+\noindent where \verb+OPT+ can be one of \verb+Given+, \verb+Zero+ or \verb+Seeds+. The \verb+int+ (\verb+nat+) option specifies what elements the finite sets of type $\num$ ($\nat$) will have. As you can see there are three different choices of how those sets will be generated, with slightly different meanings depending on whether they are applied to \verb+int+ or \verb+nat+. In the following paragraphs consider that the user has set \verb+set_size+ to $n$, with $n > 0$, and that the rules for sets of type $\num$ ($\nat$) apply only if \verb+int+ (\verb+nat+) was used.
+
+\begin{description}
+\item[{\tt Zero}] A set of type $\num$ in the test class will be reduced to the following interval:
+
+\[
+\left\{
+\begin{array}{lll}
+0  & \text{ if } & n = 1 \\
+-(n \div 2) \upto n \div 2 & \text{ if } & n > 1 \land n \mod 2 \neq 0 \\
+-(n \div 2) \upto n \div 2 -1 & \text{ if } & n > 1 \land n \mod 2 = 0 \\
+\end{array}
+\right.
+\]
+
+On the other hand, a set of type $\nat$ in the test class will be the interval $0 \upto n$.
+
+\item[{\tt Given}] If this option is chosen, then FASTEST will search for constants of type $\num$ or $\nat$, depending on the selected option, present in the test class. If there are no such constants, then \verb+Zero+ is applied. 
+
+If there are such constants, then a set of type $\num$ will include all of them plus the integer number one unit less than the minimum of these constants and the integer number one unit more than the maximum of these constants. While a set of type $\nat$ will have the same property changing ``integer'' by ``natural'' and noting that if zero is one of the constants then it will be the minimum. Observe that in these last cases the size set by the user in the command is irrelevant.
+
+These are the default rules that are applied if the user does not run any \verb+settcasestrategy+ command for a test class.
+
+\item[{\tt Seeds}] This option is similar to \verb+Given+. It takes the same constants, adds the same upper and lower limits but also adds the mean value between each pair of consecutive constants found in the test class.
+
+Same considerations than in \verb+Give+ applies if there are no $\nat$ or $\num$ constants; if zero is one of the natural numbers found in the class; and regarding the size passed by the user as a parameter.
+\end{description}
+
+
+\subsection{Generating test trees and abstract test cases}
+
+\begin{itemize}
+\item \verb+genalltca+ applies the added tactics to all the selected operations, then calculates the test tree for each operation, and finally it distributes the calculation of abstract test cases between all the registered servers. For those test classes that a \verb+settcasestrategy+ command was executed, \verb+genalltca+ will use the finite model indicated by that command.
+
+You cannot use the tool until the whole process terminates. 
+
+If you interrupt the process, you will have to start it all over again.
+
+\item It is possible to calculate the test tree without generating test cases by running \verb+genalltt+ instead of \verb+genalltca+, but if then you want to generate test cases, you will have to select all the operations again and run \verb+genalltca+.
+\end{itemize}
+
+\subsection{Exploring the specification and test trees}
+
+You can display the results of the ``testing'' process with commands \verb+showspec+, \verb+showloadedops+, \verb+showtt+ and \verb+showsch+. All share some options, check with \verb+help+.
+
+\begin{itemize}
+\item The \verb+-u+ option followed by a natural number displays the result with more or less detail (basically it expands up to some level the included schema boxes). 
+
+\item The \verb+-o+ option lets you redirect the output to a file.
+
+\item \verb+showspec+ just prints the whole specification.
+
+\item \verb+showloadedops+ lists the operations present in the specification.
+
+\item \verb+showtt+ displays the test tree.
+
+\item \verb+showsch -tcl+ shows all the schema corresponding to test classes.
+
+\item \verb+showsch -tca+ shows all the schema corresponding to abstract test cases.
+
+\item In this two variants the \verb+-p+ option followed by the name of an operation, only displays test classes or abstract test cases for this operation.
+\end{itemize}
+
+
+
+
+%\input{/home/mcristia/fceia/software/fastest/sensors-simp-tt-oplus.tex}
+

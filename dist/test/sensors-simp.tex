@@ -1,0 +1,34 @@
+\begin{zed}
+[SENSOR] \also
+
+MaxReadings == [smax: SENSOR \pfun \num]
+\end{zed}
+
+\begin{schema}{KeepMaxReadingOk}
+\Delta MaxReadings \\
+s?:SENSOR; r?:\num \\
+\where
+s? \in \dom smax \\
+smax~s? < r?\\
+smax' = smax \oplus \{s? \mapsto r?\}
+%smax' = (\dom \{s? \mapsto r?\} \ndres smax) \oplus \{s? \mapsto r?\}
+\end{schema}
+
+\begin{zed}
+KeepMaxReadingE1 == \\
+  \t1 [\Xi MaxReadings; s?:SENSOR | s? \notin \dom smax]
+\end{zed}
+
+\begin{schema}{KeepMaxReadingE2}
+\Xi MaxReadings \\
+s?:SENSOR; r?:\num
+\where
+s? \in \dom smax\\
+r? \leq smax~s? 
+\end{schema}
+
+\begin{zed}
+KeepMaxReading == \\
+  \t1 KeepMaxReadingOk \\
+  \t1 \lor KeepMaxReadingE1 \lor KeepMaxReadingE2
+\end{zed}

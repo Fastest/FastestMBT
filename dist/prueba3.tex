@@ -1,0 +1,68 @@
+\begin{schema}{G}
+xG, xG': \nat
+\where
+xG = 1
+\end{schema}
+
+
+\begin{schema}{H1}
+StateH \\
+xH': \nat
+\where
+xH = 3
+\end{schema}
+
+
+\begin{schema}{H2}
+\Delta StateH
+\where
+xH = 4 \lor xH = 5
+\end{schema}
+
+
+\begin{schema}{StateH}
+xH: \nat
+\where
+xH = 2
+\end{schema}
+
+
+
+\begin{schema}{F}
+xF, xF': \nat
+\where
+xF = 6
+\end{schema}
+
+
+\begin{schema}{C}
+xC, xC': \nat
+\where
+xC = 7 \lor xC=8 \\
+xC = 9 \implies xC = 10 \\
+xC' = xC
+\end{schema}
+
+
+\begin{schema}{D}
+xD, xD': \nat
+\where
+xD = 11 \iff xD = 12 \\
+xD' = xD
+\end{schema}
+
+
+\begin{schema}{A}
+C \\
+D \\
+xA: \nat
+\end{schema}
+
+
+\begin{zed}
+H == H1 \lor H2 \\
+E == G \land H \\
+B == E \lor F \\
+Op == A \lor B
+\end{zed}
+

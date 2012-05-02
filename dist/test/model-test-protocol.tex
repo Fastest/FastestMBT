@@ -1,0 +1,890 @@
+\documentclass[a4paper]{article}
+\usepackage{multicol}
+\usepackage[latin1]{inputenc}
+\usepackage[dvips]{geometry}
+\usepackage{z-eves}
+\usepackage{dirtree}
+\usepackage[pdftex,colorlinks,linkcolor=blue]{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage[cm]{fullpage}
+
+\newcommand*{\ra}{\rightarrow}
+
+\newenvironment{machine}[1]{
+\begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+\\ \textbf{\kern-1em end} \end{tabular} }
+
+\newenvironment{desig}{\begin{list}{}{\setlength{\labelsep}{0cm}\setlength{\labelwidth}{0cm}\setlength{\listparindent}{0cm}\setlength{\rightmargin}{\leftmargin}}}{\end{list}}
+
+\title{Formal Specification and Results of Applying Model-Based Testing to the EXP-OBDH Communication Protocol}
+
+\author{Maximiliano Cristiá\\ {\tt cristia@cifasis-conicet.gov.ar} \\CIFASIS \\ Universidad Nacional de Rosario \\ Argentina}
+
+\date{October, 2008}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document describes a Z model of the EXP-OBDH Communication Protocol (EOCP) for Scientific Microsatellite SACI-1. Also, this report documents the results of applying Model-Based Testing (MBT) from the Z model, but only up to the step where abstract test cases are generated (including pruning the test tree). MBT was applied by using the FASTEST tool developed co-jointly between CIFASIS\footnote{Centro Internacional Franco-Argentino de Ciencias de la Información y Sitemas -- Rosario -- Argentina.} and Flowgate Security Consulting\footnote{{\tt http://www.flowgate.net}}.
+
+A Statecharts model is also described to show more clearly the reactive aspect of the system.
+\end{abstract}
+
+\tableofcontents
+
+\section{The Z Model}
+
+This section describes the formal model of the EXP-OBDH Communication Protocol (EOCP) written from the informal specification \cite{}.
+
+It is worth noticing the following:
+
+\begin{enumerate}
+
+\item Only the SLAVE component of the protocol has been specified here since we consider that it is the more complex module. 
+
+\item Since it is difficult, or impossible, to specify time requisites in the Z formal notation and since EOCP's informal specification includes such requisites, the model is not accurate as it should be. However, in this case time requisites are very simple. 
+
+\item Priorities are also hard to specify in Z and EOCP requires that the EXP component assign more priority to receive interruptions to acquire data than to react to commands send by the OBDH component. We have not formalized this requirement.
+
+\item Since FASTEST does not yet implement the full Z notation, the model was forced to fit in the subset implemented in the tool. This could lead to a unnecessarily complex or unreadable model.
+
+\item The protocol that is formalized is mainly a reactive system so Z is not the most appropriate formal notation nor the particular technique for MBT implemented in FASTEST.
+
+\item The atomicity of operations has been treated rather lousy but we assume that all the operations are atomic.
+
+\item We haven't modelled the verification of a message integrity.
+
+\end{enumerate}
+
+
+\subsection{Basic and Given Types}
+
+EXP shall acquire data from the environment which, possibly, have to be sent to the OBDH. Besides, EXP stores its own state in memory. The following type represents both kinds of data.
+
+\begin{zed}
+[MDATA]
+\end{zed}
+
+The various types of commands are represented by an enumerated type.
+
+\begin{zed}
+CTYPE ::= RM | SC | IDA | SDA | TD | RC | MD | ML | LP
+\end{zed}
+
+The different types of responses are also formalized with an enumerated type:
+
+\begin{zed}
+RTYPE ::= MR | CD | EDP | ND | MDD
+\end{zed}
+
+The configuration modes in which EXP can work are represented as yet another enumerated type.
+
+\begin{zed}
+CMODE ::= COF | CON
+\end{zed}
+
+OBDH can asks EXP to actuate on its different devices by sending a Load Parameters command with a particular value in the DATA field. Type $PARAM$ refers to these values.
+
+\begin{zed}
+PARAM ::= 
+  LLDHiOff 
+  | LLDHiOn | TMOff | TMOn | HiV50 | HiV45 | HiV40 | HiVOff | RU | TS18 | TS13
+\end{zed}
+
+Time is considered discrete. Since the smallest time requisite is given in milliseconds we assume that each time unit represents a millisecond.
+
+\begin{zed}
+TIME == \nat %sin
+\end{zed}
+
+$BIN$ represents any binary type.
+
+\begin{zed}
+BIN ::= no | yes
+\end{zed}
+
+
+\subsection{The State Space of the System, its Initial States and its State Invariants}
+
+The state variables of our model are the listed below.
+
+\begin{desig}
+\item Current time as seen by EXP $\approx$ $ctime$
+
+\item Contents of EXP's memory dedicated to store experiment's data $\approx$ $memd$
+
+\item Contents of EXP's memory dedicated to store the program image and its local variables $\approx$ $memp$
+
+We assume that EXP has room for 6 buffers of 43 elements of type $MDATA$. The first 5 buffers are reserved for the program code, its variables, its stack, etc. ($memp$), and the remaining one is for experiment's data ($memd$).
+
+\item Memory dump pointer $\approx$ $mdp$
+
+It is used to keep track of how many memory cells have been sent to OBDH due to a memory dump command.
+
+\item Experiment's data memory pointer $\approx$ $ped$
+
+It is used to keep track of how many experiment's data memory cells have been sent to OBDH due to a transmit data command.
+
+\item Pointer pointing to the last used experiment's data memory cell $\approx$ $mep$
+
+It is used to keep track of how many memory cells are being used to store experiment's data.
+
+\item Whether EXP is in acquiring mode or not $\approx$ $acquiring$
+
+\item Whether EXP is waiting for the rest of an OBDH command $\approx$ $waiting$
+
+\item Configuration mode in which EXP is currently working $\approx$ $mode$
+
+\item The next command to be processed by EXP $\approx$ $ccmd$
+
+\item Whether EXP is sending data to OBDH or not $\approx$ $sending$
+
+\item Whether EXP is dumping its memory or not $\approx$ $dumping$
+
+\item Whether EXP is waiting to send a signal to the telescope for it to acquire new experimental data $\approx$ $waitsignal$
+\end{desig}
+
+We have grouped the state variables in three Z schema: the first one, groups memory related variables; the second one, time related variables; and the third, all the remaining variables.
+
+\begin{schema}{Memory}
+memp, memd: \seq MDATA \\
+mdp, mep, ped: \nat
+\end{schema}
+
+\begin{zed}
+Time == [ctime:TIME]
+\end{zed}
+
+\begin{schema}{Status}
+acquiring, waiting, sending, dumping, waitsignal: BIN \\
+mode: CMODE \\
+ccmd: CTYPE
+\end{schema}
+
+The state schema is the inclusion of the previous schema.
+
+\begin{zed}
+ExpState == [Memory; Time; Status]
+\end{zed}
+
+The initial state schema, which actually represents an infinite set of states, sets reasonable values for some of the state variables.
+
+\begin{schema}{ExpInitState}
+ExpState
+\where
+\# memp = 5*43 \\
+\# memd = 43 \\
+mdp = mep = ped = 0 \\
+acquiring = waiting = sending = dumping = waitsignal = no
+\end{schema}
+
+The state invariants of the system are described in the following schema.
+
+\begin{schema}{StateInvariants}
+ExpState
+\where
+\# memp = 5*43 \\
+\# memd = 43 \\
+mep \in 0 \upto 43 \\
+ped \in 0 \upto 43 \\
+mdp \in 0 \upto 5*43 \\
+acquiring = no \implies waitsignal = no
+\end{schema}
+
+\subsection{Operations}
+
+For the sake of simplicity we assume that, seen from a rather abstract level, commands are sent by OBDH to EXP in four steps (regardless of how many low-level data packages have to be sent):
+
+\begin{enumerate}
+\item OBDH initiates a command; 
+
+\item OBDH sends the command type;
+
+\item OBDH sends the parameters (if needed) according to the type;
+
+\item OBDH finishes the command.
+\end{enumerate}
+
+\noindent EXP will synchronize with OBDH as follows: 
+
+\begin{enumerate}
+\item EXP will wait for OBDH to initiate a command;
+
+\item EXP will wait for a command type;
+
+\item EXP will wait for the end of the command;
+
+\item EXP will execute one of several internal operations depending on the command type received in the second step.
+
+Note that we do not model the reception of parameters: we simply assume that that happens in some way.
+\end{enumerate}
+
+The operations corresponding to the first three steps are described in section \ref{stf} and the internal operations (cf. forth step) are described in sections \ref{soo} and \ref{coo}. However, the next section (\ref{tro}) shows some time-related operations since some of the other operations have time requisites.
+
+EXP also has to synchronize with the satellite's sensors for data acquisition. This is shown in section \ref{dao}.
+
+It must be remarked that all the operations, except when is explicitly mentioned, constitute the interface that EXP exposes to OBDH and other components such as sensors and the clock.
+
+
+\subsubsection{\label{tro}Time-Related Operations}
+
+$Tick$ is an external operation performed by EXP's hardware and represents time advancing one time unit. Somehow, either EXP receives that new value or the hardware modifies one of EXP's memory cells. This is irrelevant from this level of abstraction.
+
+\begin{zed}
+Tick == [\Delta ExpState; \Xi Memory; \Xi Status | ctime' = ctime + 1]
+\end{zed}
+
+When EXP receives the beginning of a new command from OBDH, it sets a timer to timeout after 500 ms. $Timeout500ms$ represents that timeout (in other words the (external) timer shall call $Timeout500ms$ when it finishes). After the execution of this operation EXP will wait anymore for the rest of the message. $Set500msTimer$ and $Stop500Timer$ constitute the interface EXP shall use to set and stop the timer, we left them sub-specified.
+
+\begin{multicols}{2}
+\begin{schema}{Timeout500ms}
+\Delta ExpState; \Xi Memory; \Xi Time
+\where
+waiting' = no \\
+acquiring' = acquiring \\
+sending' = sending \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{schema}{Set500msTimer}
+x:\num
+\end{schema}
+
+\begin{schema}{Stop500msTimer}
+x:\num
+\end{schema}
+\end{multicols}
+
+The other time requisite for EXP regards collecting experiment's data. EXP shall issue an interruption to the telescope hardware every 700 ms. We proceed in a similar fashion.
+
+\begin{multicols}{2}
+\begin{schema}{Timeout700ms}
+\Delta ExpState; \Xi Memory; \Xi Time
+\where
+waitsignal' = no \\
+sending' = sending \\
+waiting' = waiting \\
+acquiring' = acquiring \\
+dumping' = dumping \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{schema}{Set700msTimer}
+x:\num
+\end{schema}
+
+\begin{schema}{Stop700msTimer}
+x:\num
+\end{schema}
+\end{multicols}
+
+
+\subsubsection{\label{stf}Command Start, Command Type and Command Finish}
+
+The requirements document says that EXP can detect the beginning of a new command and when that happens it has to wait 500 ms for the rest of the command, and if it does not arrive EXP shall wait for another new command.
+
+The following operations are offered by EXP so OBDH can execute them to transmit its commands.
+
+\begin{schema}{CommandStartOk}
+\Delta ExpState; \Xi Memory; \Xi Time
+\where
+waiting = no \\
+waiting' = yes \\
+acquiring' = acquiring \\
+sending' = sending \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+CommandStartE == [\Xi ExpState | waiting = yes] \also
+
+CommandStart == (CommandStartOk \land Set500msTimer) \lor CommandStartE
+\end{zed}
+
+When EXP is waiting, OBDH can set the type of the command it wants to execute on EXP. Here we have three because there are two commands that send their responses in more than one step. These commands are: transmit data ($TD$) and memory dump ($MD$).
+
+\begin{multicols}{2}
+\begin{schema}{CommandTypeOk1}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+type?: CTYPE
+\where
+waiting = yes \\
+type? \notin \{TD, MD\} \\
+ccmd' = type? \\
+waiting' = waiting \\
+acquiring' = acquiring \\
+sending' = sending \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+mode' = mode
+\end{schema}
+
+\begin{schema}{CommandTypeOk2}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+type?: CTYPE
+\where
+waiting = yes \\
+type? = TD \\
+ccmd' = type? \\
+sending' = yes \\
+acquiring' = acquiring \\
+waiting' = waiting \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+mode' = mode
+\end{schema}
+
+\begin{schema}{CommandTypeOk3}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+type?: CTYPE
+\where
+waiting = yes \\
+type? = MD \\
+ccmd' = type? \\
+dumping' = yes \\
+sending' = sending \\
+acquiring' = acquiring \\
+waiting' = waiting \\
+waitsignal' = waitsignal \\
+mode' = mode
+\end{schema}
+
+\end{multicols}
+
+\begin{zed}
+CommandTypeE == [\Xi ExpState | waiting \neq yes] \also
+
+CommandType == 
+  CommandTypeOk1 \lor CommandTypeOk2 \lor CommandTypeOk3 \lor CommandTypeE
+\end{zed}
+
+In some way we assume that OBDH communicates to EXP that the current command has finished, but EXP will pay attention to this signal if it is waiting for it.
+
+\begin{schema}{CommandFinishOk1}
+\Delta ExpState; \Xi Memory; \Xi Time
+\where
+waiting = yes \\
+waiting' = no \\
+sending' = sending \\
+acquiring' = acquiring \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+CommandFinishE == [\Xi ExpState | waiting \neq yes] \also
+
+CommandFinish == 
+  (CommandFinishOk1 \land Stop500msTimer) \lor CommandFinishE
+\end{zed}
+
+Note that both $CommandFinishOk$ and $Timeout500ms$ can change the value of $waiting$. Precisely, the behaviour of EXP with respect to whether the rest of a command or a new one are accepted, depends on which of these operations is executed first.
+
+Once the command is completed by OBDH, EXP can execute the body of the corresponding internal operation (shown in sections \ref{soo} and \ref{coo}).
+
+
+\subsubsection{\label{dao}Data Acquisition}
+
+Once OBDH orders EXP to enable the interruption for data acquisition, EXP will send the interruption to the telescope every 700 ms. Once the interruption was sent, EXP is interrupted by the telescope when there is data to be retrieved. This data is stored in a 43 b buffer. $RetrieveEData$ is, thus, EXP's  operation executed by the interruption sent by the telescope.
+
+\begin{schema}{RetrieveEDataOk}
+\Delta ExpState; \Xi Time; \Xi Status \\
+data?: \seq MDATA 
+\where
+data? \neq \langle \rangle \\
+mep + \# data? \leq 43 \\
+memd' = memd \oplus \{i:1 \upto \# data? @ mep + i \mapsto data?~i\} \\
+mep' = mep + \# data? + 1\\
+ped' = 0 \\
+mdp' = mdp \\
+memp' = memp
+\end{schema}
+
+\begin{zed}
+RetrieveEDataE == 
+  [\Xi ExpState; data?: \seq MDATA | 
+    data? = \langle \rangle \lor 43 < mep + \# data?] \also
+
+RetrieveEData == RetrieveEDataOk \lor RetrieveEDataE
+\end{zed}
+
+We have not included $waiting = no \land acquiring = yes$ in the precondition because $acquiring = no$ means that the telescope is not asked to acquire data, and this implies that the telescope will not send the interruption to EXP.
+
+
+\subsubsection{\label{soo}Simple OBDH Commands}
+
+In this section we show the specification of those commands that need one-step responses to finish.
+
+The command to reset the micro-controller does not change the state of EXP because the micro-controller is considered to be an external component. Then, we (sub)specify an interface that our operation shall call to actually reset the micro-controller. Maybe this external operation can reset, for instance, the memory of our system but this is not in the requirements document.
+
+\begin{multicols}{2}
+\begin{schema}{MicroReset}
+x:\num
+\end{schema}
+
+\begin{schema}{ResetMicroOk}
+\Xi ExpState \\
+rsp!:RTYPE
+\where
+waiting = no \\
+ccmd = RM \\
+rsp! = MR
+\end{schema}
+\end{multicols}
+
+\begin{zed}
+ResetMicroE == [\Xi ExpState | waiting \neq no \lor ccmd \neq RM] \also
+
+ResetMicro == (ResetMicroOk \land MicroReset) \lor ResetMicroE
+\end{zed}
+
+
+The command asking for the current time sends the current value of $ctime$.
+
+\begin{schema}{SendClockOk}
+\Xi ExpState \\
+rsp!:RTYPE \\
+rdata!: TIME
+\where
+waiting = no \\
+ccmd = SC \\
+rsp! = CD \\
+rdata! = ctime
+\end{schema}
+
+\begin{zed}
+SendClockE == [\Xi ExpState | waiting \neq no \lor ccmd \neq SC] \also
+
+SendClock == SendClockOk \lor SendClockE
+\end{zed}
+
+Data acquisition is performed in two steps: first, OBDH sends to EXP the appropriate command, and second, and internal EXP operation is executed every 700 ms. This internal operation sends an interruption to the telescope meaning that it has to acquire data. The first step is formalized in schema $InitDataAcq$, and the second in schema $InterruptTele$.
+
+\begin{schema}{InitDataAcqOk}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+rsp!:RTYPE
+\where
+waiting = no \\
+ccmd = IDA \\
+acquiring = no \\
+acquiring' = waitsignal' = yes \\
+rsp! = MR \\
+waiting' = waiting \\
+sending' = sending \\
+dumping' = dumping \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+InitDataAcqE == 
+  [\Xi ExpState | 
+    waiting \neq no \lor ccmd \neq IDA \lor acquiring \neq no] \also
+
+InitDataAcq == (InitDataAcqOk \land Set700msTimer) \lor InitDataAcqE
+\end{zed}
+
+When the 700 ms timer timeouts EXP internal operation $InterruptTele$ is enabled. $InterruptTele$ disables it self after executing but sets the 700 ms timer again to be woke up until OBDH tells EXP to not acquire more data.
+
+\begin{schema}{InterruptTeleOk}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+signal!:\nat
+\where
+waiting = no \\
+acquiring = yes \\
+waitsignal = no \\
+waitsignal' = yes \\
+signal! = 1 \\
+waiting' = waiting \\
+sending' = sending \\
+dumping' = dumping \\
+acquiring' = acquiring \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+InterruptTele == InterruptTeleOk \land Set700msTimer
+\end{zed}
+
+When OBDH asks EXP to stop data acquisition, it simply changes $acquiring$ from $yes$ to $no$. Note that this implies that $InterruptTele$ will no longer be enabled.
+
+\begin{schema}{StopDataAcqOk}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+rsp!:RTYPE
+\where
+waiting = no \\
+ccmd = SDA \\
+acquiring = yes \\
+acquiring' = waitsignal' = no \\
+rsp! = MR \\
+waiting' = waiting \\
+sending' = sending \\
+dumping' = dumping \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+StopDataAcqE == 
+  [\Xi ExpState | 
+    waiting \neq no \lor ccmd \neq SDA \lor acquiring \neq yes] \also
+
+StopDataAcq == StopDataAcqOk \lor StopDataAcqE
+\end{zed}
+
+Reconfiguration is easy to model because we only have to change the value of state variable $mode$ as follows.
+
+\begin{schema}{ReconfigOk}
+\Delta ExpState; \Xi Memory; \Xi Time \\
+nmode?:CMODE \\
+rsp!:RTYPE \\
+\where
+waiting = no \\
+ccmd = RC \\
+mode' = nmode? \\
+rsp! = MR \\
+acquiring' = acquiring \\
+sending' = sending \\
+waiting' = waiting \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+ccmd' = ccmd
+\end{schema}
+
+\begin{zed}
+ReconfigE == [\Xi ExpState | waiting \neq no \lor ccmd \neq RC] \also
+
+Reconfig == ReconfigOk \lor ReconfigE
+\end{zed}
+
+When EXP receives a MEMORY DUMP command it prepares itself to dump the memory and returns MESSAGE RECEIVED to OBDH. The actual dump takes place when OBDH sends a TRANSMIT DATA command.
+
+\begin{schema}{MemoryDumpOk}
+\Xi ExpState \\
+rsp!:RTYPE
+\where
+waiting = no \\
+ccmd = MD \\
+rsp! = MR
+\end{schema}
+
+\begin{zed}
+MemoryDumpE == [\Xi ExpState | waiting \neq no \lor ccmd \neq MD] \also
+
+MemoryDump == MemoryDumpOk \lor MemoryDumpE
+\end{zed}
+
+Loading the memory with data coming from OBDH is more complex than the previous operations because it is necessary to formalize how the 43 bytes dedicated to experiment's data can be modified avoiding overflows since them can lead to program crashes.
+
+\begin{schema}{MemoryLoadOk1}
+\Delta ExpState; \Xi Time; \Xi Status \\
+addr?:\nat \\
+data?: \seq MDATA \\
+rsp!:RTYPE \\
+\where
+waiting = no \\
+ccmd = ML \\
+0 < addr? \\
+data? \neq \langle \rangle \\
+addr? + \# data? \leq 43 \\
+addr? + \# data? \leq mep \\
+memd' = memd \oplus \{i:1 \upto \# data? @ i + addr? - 1 \mapsto data?~i\} \\
+rsp! = MR \\
+mdp' = mdp \\
+mep' = mep \\
+ped' = ped \\
+memp' = memp
+\end{schema}
+
+\begin{schema}{MemoryLoadOk2}
+\Delta ExpState; \Xi Time; \Xi Status \\
+addr?:\nat \\
+data?: \seq MDATA \\
+rsp!:RTYPE \\
+\where
+waiting = no \\
+ccmd = ML \\
+0 < addr? \\
+data? \neq \langle \rangle \\
+addr? + \# data? \leq 43 \\
+mep < addr? + \# data? \\
+memd' = memd \oplus \{i:1 \upto \# data? @ i + addr? - 1 \mapsto data?~i\} \\
+mep' = addr? + \# data? \\
+rsp! = MR \\
+mdp' = mdp \\
+ped' = ped \\
+memp' = memp
+\end{schema}
+
+\begin{zed}
+MemoryLoadE1 ==
+  [\Xi ExpState; addr?:\nat; data?: \seq MDATA |
+    waiting \neq no \lor ccmd \neq ML] \also
+
+MemoryLoadE2 == \\
+  \t1 [\Xi ExpState; addr?:\nat; data?: \seq MDATA; low?:BIN |
+     addr? = 0 \lor data? = \langle \rangle \lor 43 < addr? + \# data?] \also
+
+MemoryLoad == \\
+  \t1 MemoryLoadOk1 \lor MemoryLoadOk2
+      \lor MemoryLoadE1 \lor MemoryLoadE2
+\end{zed}
+
+When a Load Parameters command is received, EXP simply checks whether the parameter is possible and if it is, EXP sends it to the appropriate device. Parameter checking is modelled by waiting a value of type $PARAM$. Sending the value to the hardware is modelled with an output variable.
+
+\begin{schema}{LoadParamOk}
+\Xi ExpState \\
+p?, actuate!:PARAM \\
+rsp!:RTYPE
+\where
+waiting = no \\
+ccmd = LP \\
+actuate! = p? \\
+rsp! = MR
+\end{schema}
+
+\begin{zed}
+LoadParamE == [\Xi ExpState | waiting \neq no \land ccmd \neq LP] \also
+
+LoadParam == LoadParamOk \lor LoadParamE
+\end{zed}
+
+
+\subsubsection{\label{coo}Data Transmission}
+
+Data transmission is the more complex operation of the system because it involves sending different parts of the memory and affecting the memory in dissimilar ways. Furthermore, data transmission possibly needs more than one response to finish.
+
+This operation is invoked to transmit experiment's data and the result of a memory dump. The first two schema below describe the communication of experiment's data, and the last two the transmission after a memory dump.
+
+Once OBDH requests experiment's data, EXP sends one 43 bytes long data package as long as the buffer is complete. If the buffer is not complete, EXP will respond with a NO DATA message.
+
+%It is not clear from the requirements whether EXP shall accept new commands from OBDH or it shall receive new data from the sensors while sending experiment's data. We have assumed it shall, but several inconsistencies might occur.
+
+%\pagebreak
+\begin{multicols}{2}
+\begin{schema}{TransDataOk1}
+\Delta ExpState; \Xi Time \\
+rsp!:RTYPE \\
+rdata!: \seq MDATA
+\where
+waiting = no \\
+ccmd = TD \\
+sending = yes \\
+dumping = no \\
+ped = 0 \\
+mep = 43 \\
+rsp! = EDP \\
+rdata! = memd \\
+ped' = 43 \\
+sending' = no \\
+acquiring' = acquiring \\
+waiting' = waiting \\
+dumping' = dumping \\
+waitsignal' = waitsignal \\
+ccmd' = ccmd \\
+mode' = mode \\
+memp' = memp \\
+memd' = memd \\
+mdp' = mdp \\
+mep' = mep
+\end{schema}
+
+\begin{schema}{TransDataE1}
+\Xi ExpState \\
+rsp!:RTYPE \\
+\where
+waiting = no \\
+ccmd = TD \\
+sending = yes \\
+dumping = no \\
+mep < 43 \lor ped = 43 \\
+rsp! = ND
+\end{schema}
+\end{multicols}
+
+Dumping the memory is similar to transmitting experiment's data but: (a) we have interpreted that a memory dump does not free memory; and (b) EXP sends one 43 bytes data package as a response to each Transmit Data command sent by OBDH, until all of $memp$ has been transmited.
+
+%It is not clear from the requirements whether EXP shall accept new commands from OBDH while dumping its memory. We have assumed it shall, but several inconsistencies might occur.
+
+\begin{multicols}{2}
+\begin{schema}{TransDataOk2}
+\Delta ExpState; \Xi Time; \Xi Status \\
+rsp!:RTYPE \\
+rdata!: \seq MDATA
+\where
+waiting = no \\
+ccmd = TD \\
+sending = dumping = yes \\
+mdp < 5*43 \\
+rsp! = MDD \\
+rdata! = (mdp + 1 \upto mdp + 43) \dres memp \\
+mdp' = mdp + 43 \\
+memp' = memp \\
+memd' = memd \\
+mep' = mep \\
+ped' = ped
+\end{schema}
+
+\begin{schema}{TransDataOk3}
+\Delta ExpState; \Xi Time \\
+rsp!:RTYPE \\
+\where
+waiting = no \\
+ccmd = TD \\
+sending = dumping = yes \\
+mdp = 5*43 \\
+rsp! = ND \\
+mdp' = 0 \\
+sending' = dumping' = no \\
+memp' = memp \\
+memd' = memd \\
+mep' = mep \\
+ped' = ped \\
+acquiring' = acquiring \\
+waiting' = waiting \\
+sending' = sending \\
+waitsignal' = waitsignal \\
+mode' = mode \\
+ccmd' = ccmd
+\end{schema}
+
+\end{multicols}
+
+\begin{zed}
+TransDataE2 == 
+  [\Xi ExpState | 
+    waiting \neq no \lor ccmd \neq TD \lor sending \neq yes] \also
+
+TransData == \\
+  \t1 TransDataOk1 \\
+  \t1 \lor TransDataOk2 \\
+  \t1 \lor TransDataOk3 \\
+  \t1 \lor TransDataE1 \\
+  \t1 \lor TransDataE2
+\end{zed}
+
+\end{document}
+
+\section{An Abstract Statecharts Model}
+
+In this section we show a Statecharts model focusing on the reactive aspects of the system, rather in its data transformations. It should be considered as a complement of the Z model. 
+
+Since the limitations and nature of Statecharts make it complicated or even impossible to describe complex data structures, the model has a smaller number of states but at the same time real-time requirements and concurrency are easy to describe and reason about.
+
+Some events correspond to operations as shown in Table \ref{event-op}. We use abbreviated names to simplify the graphs. Events \verb+mr+, \verb+nd+, \verb+edp+, \verb+mdp+ and \verb+cd+ correspond to $MR$, $ND$, $EDP$, $MDP$ and $CD$ of type $RTYPE$. 
+
+Events $rdata$ and $wdata$ constitute the most obscure, abstract, and less accurate feature of the model because they are intended to represent the interaction with the memory. Roughly, $rdata$ means to read data from the memory and $wdata$ means to write data into memory. Reading is performed by $TransmitData$ and writing is done by $ReceiveEData$ and $MemoryLoad$, but the Z operations describe a more detailed specification. In this sense, the Statecharts named \verb+Memory+ represents a very abstract view of the state of the memory; it roughly corresponds to schema $Memory$.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|l|l|l|}\hline
+{\bf Event} & {\bf Operation} & {\bf Event} & {\bf Operation} \\\hline
+ida & $InitDataAcq$ & sda & $StopDataAcq$ \\\hline
+sc & $SendClock$ & rc & $Reconfig$ \\\hline
+ml & $MemoryLoad$ & rm & $ResetMicro$ \\\hline
+td & $TransmitData$ & md & $MemoryDump$ \\\hline
+CommandReception::timeout & $Timeout500ms$ & cstart & $CommandStart$ \\\hline
+ctype.x & $CommandType$ & cfinish & $CommandFinish$ \\\hline
+DataTransmission::timeout & $Timeout1400ms$ & wdata & $ReceiveEData$ and $MemoryLoad$ \\\hline
+rdata & TransmitData & & \\\hline
+\end{tabular}
+\caption{\label{event-op}Relationship between events and operations.}
+\end{center}
+\end{table}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.75]{st-exp.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=1]{st-cr.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=1]{st-dt.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=1]{st-me.png}
+\end{center}
+\end{figure}
+
+
+\section{Model-Based Testing Results}
+
+We have applied Fastest to generate abstract test cases for each operation defined in the Z model. The test cases so generated are meant to constitute the unit testing step of the whole testing process. We have not applied Fastest to test the operations defined in section \ref{tro}.
+
+\subsection{Abstract Test Cases for ReceiveEData}
+
+The following Fastest script was run to generate the test tree.
+
+\end{document}
+
+\begin{verbatim}
+FASTest> loadspec model-test-protocol.tex
+FASTest> selop ReceiveEData
+FASTest> addtactic ReceiveEData SP \oplus mem \oplus \{i:1 \upto \# data? @ mep + i \mapsto data?~i\}
+FASTest> genalltt
+\end{verbatim}
+
+
+\subsection{Abstract Test Cases for Sime OBDH Commands}
+
+
+mcristia@mcristia-laptop:~/fceia/software/fastest$ java -jar fastest.jar 
+FASTest version 1.0, (C) 2008, Flowgate Security Consulting
+FASTest> loadspec model-test-protocol.tex
+Loading specification..
+Specification loaded.
+FASTest> selop SendClock
+FASTest> selop InitDataAcq
+FASTest> selop StopDataAcq
+FASTest> selop Reconfig
+FASTest> selop MemoryDump
+FASTest> genalltt
+Generating test tree for 'SendClock' operation..
+Generating test tree for 'InitDataAcq' operation..
+Generating test tree for 'StopDataAcq' operation..
+Generating test tree for 'Reconfig' operation..
+Generating test tree for 'MemoryDump' operation..
+FASTest> showsch -tcl -o SimpleOps1-tcl.tex
+
+\subsubsection{Abstract Test Cases for MemoryLoad}
+
+
+\subsection{Abstract Test Cases for TransData}
+
+\begin{verbatim}
+selop TransDataOk1
+addtactic TransDataOk1 SP \dres (ped + 1 \upto min~\{ped + 43, mep\}) \dres mem
+genalltt
+selop TransDataOk3
+addtactic TransDataOk3 SP \dres (mdp + 1 \upto mdp + 43) \dres mem
+genalltt
+\end{verbatim}
+
+\section{Conclusions and Future Work}
+
+
+
+

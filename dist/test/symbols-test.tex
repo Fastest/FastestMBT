@@ -1,0 +1,113 @@
+\documentclass{article}
+\usepackage{czt}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+\newcommand{\machineInit}{\\ \textbf{\kern-1em init} \\}
+\newcommand{\machineOps}{\\ \textbf{\kern-1em ops} \\}
+
+\begin{document}
+% Para usar con pruebas.refExprPrinter con la intencion de obtener los codigos ASCII de los simbolos Z
+
+\begin{schema}{Schema1}
+a: \num \\
+b: \nat \\
+c: \arithmos \\
+d: \nat_1 \\
+dd: \power \num \\
+e: \power_1 \num \\
+f: \finset_1 \num \\
+R: A \rel B \\
+F1: A \fun B \\
+A : \power \num \\
+B: \power \num \\
+C: \finset \num \\
+F2: A \pfun B \\
+F3: A \pinj B \\
+F4: A \inj B \\
+F5: A \psurj B \\
+F6: A \surj B \\
+F7: A \bij B \\
+F8: A \ffun B \\
+F9: A \finj B \\
+D: 1 .. 3 \\
+\where
+A \neq B \\
+a \notin A \\
+A = \emptyset \\
+A \subset B \\
+A \subseteq B \\
+A \cup B = \{\} \\
+A \cap B = \{\} \\
+A \setminus B = \{\} \\
+A \symdiff B = \{\} \\
+A = \bigcup \{\} \\
+A = \bigcap \{\} \\
+\{a \mapsto b\} = A \\
+\dom A = \{\} \\
+\ran A = \{\} \\
+\id A = \{\} \\
+A \comp B = \{\}  \\
+A \circ B = \{\}  \\
+A \dres B = \{\} \\
+A \rres B = \{\} \\
+A \ndres B = \{\} \\
+A \nrres B = \{\} \\
+A \limg B \rimg = \{\} \\
+A \oplus B = \{\} \\
+\plus R = \{\} \\
+\star R = \{\} \\
+\disjoint A\\
+A \partition B \\
+a = \negate 1 \\
+a \leq b \\
+a \geq b \\
+a \div b = 1 \\
+a \mod b = 1 \\
+\# A = 2 \\
+
+\end{schema}
+
+\begin{schema}{Schema2}
+ S1: \seq \num \\
+S2: \iseq \num \\
+S3: \seq_1 \num \\
+\where
+\langle 1,2,3 \rangle = S1 \\
+S1 \cat S2 = S1 \\
+S1 \extract 1 = S1 \\ 
+S1 \filter 2 = S1 \\
+S1 \prefix S2 \\
+S1 \suffix S2 \\
+S1 \infix S2 \\
+S1 \dcat S2 = S1 \\
+\rev S1 = S1 \\
+\head S1 = 2 \\
+\tail S1 = S2 \\
+\last S1 = 4 \\
+\front S1 = S2 \\
+\squash S1 = S2
+\end{schema}
+
+\begin{schema}{Schema3}
+ \Delta Schema1 \\
+ \Xi Schema2 \\
+ \Theta Schema1 \\
+a: \num \cross \num \\
+A: \power \num
+\where
+\first a = 1 \land \second a=2 \land \succ 1 = 2 \\
+\min A = 2 \\
+\max A = 2 \\
+
+\end{schema}
+
+
+
+
+
+
+
+
+\end{document}
+

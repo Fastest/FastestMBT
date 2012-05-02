@@ -1,0 +1,205 @@
+\begin{theorem}{SingletonIsNotEmpty}{x:X}
+\{ x \} = \{ \}
+\end{theorem}
+
+\begin{theorem}{NatRangeNotEmpty}{n, \const N, \const M: \nat}
+( n + N \upto ( n + M ) ) = \{ \} \\
+\eval( N < M )
+\end{theorem}
+
+\begin{theorem}{BasicSetContradiction}{px:\power X}
+px = \{ \} \\
+px \neq \{ \}
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddleEq}{x, \const y, \const z: X}
+x = y \\
+x = z \\
+\end{theorem}
+
+\begin{theorem}{NotInEmptyDom}{x: X; R:X \rel Y}
+x \in \dom R \\
+R = \{ \}
+\end{theorem}
+
+\begin{theorem}{BasicMembershipContradiction}{px:\power X; x:X}
+x \in px \\
+x \notin px
+\end{theorem}
+
+\begin{theorem}{NotSubsetOfSingleton}{px:\power X; x:X}
+px \neq \{ \} \\
+px \subset \{ x \} 
+\end{theorem}
+
+\begin{theorem}{NotInEmptySet}{x: X; px:\power X}
+x \in px \\
+px = \{ \}
+\end{theorem}
+
+\begin{theorem}{UndefinitionByEmptiness}{f: X \pfun Y}
+f = \{ \} \\
+\sw( f~ \anything ) \\
+\end{theorem}
+
+\begin{theorem}{SetExtNotASubset}{\const x, \const y:X; px:\power X}
+\{ x \} = px \\
+\{ y \} \subset px
+\end{theorem}
+
+\begin{theorem}{ExcludedMiddleSetExt}{x,z: X}
+x \notin \{ \sw( z ) \} \\
+x = z \\
+\end{theorem}
+
+\begin{theorem}{ReadySP7}{px: \power X;x:X;y:Y}
+x \in px \\
+px \subset \dom \{ x \mapsto y \}
+\end{theorem}
+
+\begin{theorem}{MapletIsNotSuperset}{r:X \rel Y;x:X;y:Y}
+x \notin \dom r \\
+r \neq \{ \} \\
+r \subset \{ x \mapsto y \}
+\end{theorem}
+
+\begin{theorem}{MapletIsNotPFun}{r:X \rel Y; x:X;y:Y}
+x \notin \dom r
+\{ x \mapsto y \} = r
+\end{theorem}
+
+\begin{theorem}{TeoremaDelSP11}{px:\power X;x: X}
+x \notin px \\
+\{ x \} \subset px
+\end{theorem}
+
+\begin{theorem}{TeoremaDelSP20}{px:\power X;x: X}
+x \in px \\
+px \subset \{ x \}
+\end{theorem}
+
+\begin{theorem}{MapletEmptyIntersection}{r:X \rel Y; x:X; y:Y}
+x \notin \dom r
+\{ x \mapsto y \} \cap r \neq \{ \}
+\end{theorem}
+
+\begin{theorem}{TeoremaNewSP6}{r:X \rel Y; x:X; y:Y}
+x \notin \dom r
+\{ x \mapsto y \} \subset r
+\end{theorem}
+
+\begin{theorem}{SingletonNotInSet}{px:\power X; x:X}
+x \notin px \\
+\{ x \} = px
+\end{theorem}
+
+\begin{theorem}{TeoremaDelSP13}{px:\power X; x:X}
+x \notin px \\
+px \neq \{ \} \\
+px \subset \{ x \}
+\end{theorem}
+
+\begin{theorem}{TeoremaReadySP20}{px:\power X; x:X; y:Y}
+x \notin px \\
+px = \dom \{ x \mapsto y \}
+\end{theorem}
+
+\begin{theorem}{TeoremaGotoFloorDNF1}{x, y: \nat}
+x \neq y \\
+\lnot x > y \\
+\lnot x < y
+\end{theorem}
+
+\begin{theorem}{TeoremaReadySP21}{px:\power X; x:X; y:Y}
+x \notin px \\
+\dom \{ x \mapsto y \} \subset px
+\end{theorem}
+
+\begin{theorem}{TeoremaReadySP23}{r:X \rel Y; x:X; y:Y}
+r \neq \{ \} \\
+\dom r \subset \dom \{ x \mapsto y \}
+\end{theorem}
+
+\begin{theorem}{NrresSmallerThanRel}{R: X \rel Y; B: \power Y; x:X}
+x \in \dom ( R \nrres B ) \\
+\{ x \} \cap \dom R = \{ \}
+\end{theorem}
+
+\begin{theorem}{DomNrresNotEmpty}{R: X \rel Y; B: \power Y; x:X}
+R \neq \{ \} \\
+x \in \dom ( R \nrres B ) \\
+\dom R \subset \{ x \}
+\end{theorem}
+
+\begin{theorem}{TeoremaDelSP1}{R: X \rel Y; B: \power Y; x:X}
+x \in \dom ( R \nrres B ) \\
+R = \{ \}
+\end{theorem}
+
+\begin{theorem}{NotInEmptyRan}{y: Y; R:X \rel Y}
+y \in \ran R \\
+R = \{ \}
+\end{theorem}
+
+\begin{theorem}{SingletonInRan}{R:X \rel Y; y:Y}
+R \neq \{ \} \\
+\{ y \} \cap \ran R \neq \{ \} \\
+\ran R \subset \{ y \} 
+\end{theorem}
+
+\begin{theorem}{TwoElementsInRan}{R: X \rel Y; x:X; \const y1, \const y2:Y}
+y1 \in \ran R \\
+\{ x \mapsto y2 \} = R
+\end{theorem}
+
+\begin{theorem}{DisplaySP24}{px:\power X; \const x, \const y: X}
+\{ x \} = px \\
+\{ y \} = px
+\end{theorem}
+
+\begin{theorem}{DisplaySP25}{px:\power X; \const x, \const y: X}
+\{ x \} = px \\
+\{ y \} \subset px
+\end{theorem}
+
+\begin{theorem}{DisplaySP26}{px, py:\power X}
+px = py \\
+py \neq \{ \} \\
+px \cap py = \{ \}
+\end{theorem}
+
+\begin{theorem}{TeoremaNewSP18}{r:X \rel Y;\const x, y:\nat}
+\# \dom r = y \\
+y = x \\
+r = \{ \} \\
+\eval( x > 0 )
+\end{theorem}
+
+\begin{theorem}{TeoremaNewSP23}{r:X \rel Y;x: X;y: Y;n, \const N: \nat}
+\# \dom r = n \\
+n = N \\
+\{ x \mapsto y \} = r \\
+\eval( N > 1 )
+\end{theorem}
+
+\begin{theorem}{EmptyUpTo}{n, \const N, \const M:\nat}
+n + N \upto ( n + M ) = \{ \} \\
+\eval( N < M )
+\end{theorem}
+
+\begin{theorem}{NotASequenceEqZero}{s:\seq X; n:\nat}
+n = 0 \\
+s \neq \{ \} \\
+\dom s = \dom \{ i : 1 \upto \anything @ i + n - 1 \mapsto \anything \}
+\end{theorem}
+
+\begin{theorem}{NotASequenceSubsetZero}{s:\seq X; n:\nat}
+n = 0 \\
+s \neq \{ \} \\
+\dom \{ i : 1 \upto \anything @ i + n - 1 \mapsto \anything \} \subset \dom s
+\end{theorem}
+
+\begin{theorem}{NotEmptyRel}{r: X \rel Y}
+r \neq \{ \} \\
+\{ \anything : 1 \upto \# r @ \anything \} = \{ \} \\
+\end{theorem}

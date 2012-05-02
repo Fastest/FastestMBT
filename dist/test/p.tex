@@ -1,0 +1,64 @@
+\documentclass{article}
+\usepackage{czt}
+\newenvironment{machine}[1]{
+\begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+\\ \textbf{\kern-1em end} \end{tabular} }
+\begin{document}
+
+% Lo toma
+\begin{schema}{Schema1}
+n: \nat
+\where
+\LET a == 5 @ a = 5
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema2}
+n: \nat
+\where
+\LET b == 5 @ 5 = b
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema3}
+n: \nat
+\where
+\LET c == \{5\} @ 5 \in c
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema4}
+n: \nat
+\where
+\LET d == \{n\} @ n \in d
+\end{schema}
+
+% Lo toma
+\begin{schema}{Schema5}
+n: \nat
+\where
+\LET a == 5 @ (a = 5)
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema6}
+n: \nat
+\where
+\LET b == 5 @ (5 = b)
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema7}
+n: \nat
+\where
+\LET c == \{5\} @ (5 \in c)
+\end{schema}
+
+% No lo toma
+\begin{schema}{Schema8}
+n: \nat
+\where
+\LET d == \{n\} @ (n \in d)
+\end{schema}
+\end{document}
+

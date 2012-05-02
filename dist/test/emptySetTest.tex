@@ -1,0 +1,24 @@
+\documentclass{article}
+\usepackage{z-eves}   % oz or z-eves or fuzz styles
+\newenvironment{machine}[1]{
+    \begin{tabular}{@{\qquad}l}\textbf{\kern-1em machine}\ #1\\ }{
+    \\ \textbf{\kern-1em end} \end{tabular} }
+
+
+\begin{document}
+
+%Imprimir este archivo usando PabloPrueba2.java
+\begin{axdef}
+ a: \nat \pfun \nat
+ \where
+\emptyset[\nat] = \{\}  
+\emptyset[\power \nat] = \{\}  \\
+\emptyset[\nat \rel \nat] = \{\}  \\
+\emptyset[\nat \fun \nat] = \{\}  \\
+\emptyset[\nat \fun (\nat \pfun \nat)] = \{\} \\
+
+
+
+\end{axdef} 
+
+\end{document}

@@ -1,0 +1,15 @@
+loadspec prueba1.tex
+selop A
+selop B
+selop C
+selop D
+selop E
+genalltt
+showsch A_VIS
+showsch B_VIS
+showsch C_VIS
+showsch D_VIS
+showsch E_VIS
+showsch -tcl
+showspec
+quit

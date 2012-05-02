@@ -1,0 +1,351 @@
+\begin{schema}{KeepMaxReading\_VIS}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_DNF\_1}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r?
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_1}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? < 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_2}
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? < 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_3}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? < 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_4}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? = 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_5}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? = 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_6}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? = 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_7}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? > 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_8}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? > 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_9}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ smax~s? < r? \\
+ smax~s? > 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_DNF\_2}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_10}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? < 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_11}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? < 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_12}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? < 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_13}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? = 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_14}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? = 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_15}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? = 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_16}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? > 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_17}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? > 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_18}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \notin \dom smax \\
+ smax~s? > 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_DNF\_3}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s?
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_19}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? < 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_20}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? < 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_21}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? < 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_22}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? = 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_23}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? = 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_24}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? = 0 \\
+ r? > 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_25}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? > 0 \\
+ r? < 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_26}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? > 0 \\
+ r? = 0
+\end{schema}
+
+
+\begin{schema}{KeepMaxReading\_SP\_27}\\
+ smax : SENSOR \pfun \num \\
+ s? : SENSOR \\
+ r? : \num 
+\where
+ s? \in \dom smax \\
+ r? \leq smax~s? \\
+ smax~s? > 0 \\
+ r? > 0
+\end{schema}
+
+

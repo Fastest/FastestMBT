@@ -1,0 +1,39 @@
+Lista izquierda: [8]           	AuditAlarm
+Lista derecha: [8]		AuditLatch					
+Lista final: [16]		AuditAlarm \/ AuditLatch
+
+
+Lista izquierda: [16]		AuditAlarm \/ AuditLatch
+Lista derecha: [8]		AuditDoor
+Lista final: [24]		AuditAlarm \/ AuditLatch \/ AuditDoor
+
+
+Lista izquierda: [24]		AuditAlarm \/ AuditLatch \/ AuditDoor
+Lista derecha: [0]		AuditLogAlarm
+Lista final: [24]		AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm
+
+
+
+Lista izquierda: [24]			AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm
+Lista derecha: [8,1,2,108,144]		AuditScreen
+Lista final: [32,25,26,132,168]		AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm \/ AuditScreen
+             Producto de los elementos = 461260800
+
+
+
+
+Lista izquierda: [32,25,26,132,168]	AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm \/ AuditScreen
+Lista derecha: [8,1,2,108,144]		AuditDisplay
+Lista final: [40,33,34,140,176,33,26,27,133,169,34,27,28,134,170,140,133,134,240,276,176,169,170,276,312]	
+					AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm \/ AuditScreen \/ AuditDisplay
+		Producto de los elementos = 24263539244524406079388497182752528605904896000000
+
+
+
+
+Lista izquierda: [40,33,34,140,176,33,26,27,133,169,34,27,28,134,170,140,133,134,240,276,176,169,170,276,312]
+					AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm \/ AuditScreen \/ AuditDisplay
+Lista derecha: [8,1,2,108,144,1]	NoChange
+Lista final:[48,41,42,148,184,41,41,34,35,141,177,34,42,35,36,142,178,35,148,141,142,248,284,141,184,177,178,284,320,177,41,34,35,141,177,34,34,27,28,134,170,27,35,28,29,135,171,28,141,134,135,241,277,134,177,170,171,277,313,170,42,35,36,142,178,35,35,28,29,135,171,28,36,29,30,136,172,29,142,135,136,242,278,135,178,171,172,278,314,171,148,141,142,248,284,141,141,134,135,241,277,134,142,135,136,242,278,135,248,241,242,348,384,241,284,277,278,384,420,277,184,177,178,284,320,177,177,170,171,277,313,170,178,171,172,278,314,171,284,277,278,384,420,277,320,313,314,420,456,313]
+					AuditAlarm \/ AuditLatch \/ AuditDoor \/ AuditLogAlarm \/ AuditScreen \/ AuditDisplay \/ NoChange
+		Producto de los elementos = 2543474989918007817912975075203571129013145796149261811074729443329405448764608485042770709837665479694013118741627782725730193844134423550477428234120810715623879215666129840217084444410780135583572743137835267583243542575289304872567969751906787828050825487893227103639126765963059564380160000000000000000000000000000

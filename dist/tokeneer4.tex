@@ -1,0 +1,2259 @@
+\begin{gendef}[X]
+ optional == \{ x : \finset X | \# x \leq 1\} \\
+ nil == \emptyset[X] \\
+ the == \{~x : X @ \{ x \} \mapsto x \}
+\end{gendef}
+
+\begin{zed}
+	TIME == \nat
+\end{zed}
+
+\begin{zed}
+        zeroTime == 0
+\end{zed}
+
+\begin{zed}
+	PRESENCE ::= present | absent
+\end{zed}
+
+\begin{zed}
+	CLASS ::= unmarked | unclassified | restricted | confidential |
+		secret | topsecret
+\end{zed}
+
+\begin{schema}{Clearance}
+	class: CLASS
+\end{schema}
+
+\begin{axdef}
+        minClearance : Clearance \cross Clearance \fun Clearance
+\end{axdef}
+
+\begin{zed}
+        PRIVILEGE ::= userOnly | guard | securityOfficer | auditManager 
+\end{zed}
+
+\begin{zed}
+[ USER ]
+\end{zed}
+
+\begin{axdef}
+ISSUER : \power USER
+\end{axdef}
+
+\begin{zed}
+[ FINGERPRINT ]
+\end{zed}
+
+\begin{zed}
+[ FINGERPRINTTEMPLATE ]
+\end{zed}
+
+\begin{schema}{FingerprintTemplate}
+	template: FINGERPRINTTEMPLATE
+\end{schema}
+
+\begin{zed}
+        [ KEYPART ]
+\end{zed}
+
+\begin{schema}{CertificateId}
+	issuer: ISSUER
+\end{schema}
+
+\begin{schema}{Certificate}
+        iden: CertificateId
+\\	validityPeriod: \power TIME
+\\      isValidatedBy: optional[KEYPART]
+\end{schema}
+
+\begin{schema}{IDCert}
+	Certificate
+\\      subject: USER
+\\      subjectPubK: KEYPART
+\end{schema}
+
+\begin{schema}{CAIdCert}
+        IDCert
+\where
+        isValidatedBy = \{~ subjectPubK ~\} 
+\end{schema}
+
+\begin{zed}
+[ TOKENID ]
+\end{zed}
+
+\begin{schema}{AttCertificate}
+        Certificate
+\\      baseCertId: CertificateId      
+\\      tokenID: TOKENID 
+\end{schema}
+
+\begin{schema}{PrivCert}
+	AttCertificate
+\\	role: PRIVILEGE
+\\	clearance: Clearance
+\end{schema}
+
+\begin{schema}{AuthCert}
+	AttCertificate
+\\	role: PRIVILEGE
+\\	clearance: Clearance
+\end{schema}
+
+\begin{schema}{IandACert}
+	AttCertificate
+\\	template: FingerprintTemplate
+\end{schema}
+
+\begin{schema}{Token}
+	tokenID: TOKENID
+
+\also	idCert: IDCert
+\\	privCert: PrivCert
+\\	iandACert: IandACert
+\\	authCert: optional[AuthCert]
+\end{schema}
+
+\begin{schema}{ValidToken}
+	Token
+\where
+	privCert.baseCertId = idCert.iden
+\\	iandACert.baseCertId = idCert.iden
+
+\also	privCert.tokenID = tokenID
+\\	iandACert.tokenID = tokenID
+\end{schema}
+
+\begin{schema}{TokenWithValidAuth}
+	Token
+\where
+        authCert \neq nil 
+\\      \t1    \land  (the~ authCert).tokenID = tokenID
+\\	\t1    \land  (the~ authCert).baseCertId = idCert.iden
+\end{schema}
+
+\begin{schema}{CurrentToken}
+	ValidToken
+\\	now: TIME
+\where
+	now \in idCert.validityPeriod
+\\ \t1		{} \cap privCert.validityPeriod
+\\ \t1		{} \cap iandACert.validityPeriod
+\end{schema}
+
+\begin{schema}{Enrol}
+        idStationCert : IDCert
+\\      issuerCerts : \power IDCert
+\where
+        idStationCert \in issuerCerts
+\end{schema}
+
+\begin{schema}{ValidEnrol}
+        Enrol
+\where
+        issuerCerts \cap CAIdCert  \neq \emptyset
+\also
+\\      \forall cert : issuerCerts @ 
+\\      \t1     cert.isValidatedBy \neq nil 
+\\      \t1     \land (\exists issuerCert : issuerCerts @ 
+        issuerCert \in CAIdCert 
+\\      \t2     \land the~ cert.isValidatedBy = issuerCert.subjectPubK
+\\      \t2     \land cert.iden.issuer = issuerCert.subject )   
+\end{schema}
+
+\begin{zed}
+	DOOR ::= open | closed
+\also
+\end{zed}
+
+\begin{zed}
+	LATCH ::= unlocked | locked
+\also
+\end{zed}
+
+\begin{zed}
+	ALARM ::= silent | alarming
+\end{zed}
+
+\begin{zed}
+	DISPLAYMESSAGE ::= blank | welcome | insertFinger | openDoor |
+                        wait | 
+\\      \t3  removeToken | tokenUpdateFailed | doorUnlocked
+\end{zed}
+
+\begin{zed}
+	FINGERPRINTTRY ::= noFP | badFP | goodFP \ldata FINGERPRINT \rdata
+\also
+\end{zed}
+
+\begin{zed}
+	TOKENTRY ::= noT | badT | goodT \ldata Token \rdata
+\end{zed}
+
+\begin{zed}
+	[ Audit ]
+\end{zed}
+
+\begin{axdef}
+        maxSupportedLogSize : \nat
+\end{axdef}
+
+\begin{schema}{Config}
+	alarmSilentDuration, latchUnlockDuration : TIME
+\\      tokenRemovalDuration : TIME
+\\      enclaveClearance : Clearance
+\\      authPeriod : PRIVILEGE \fun TIME \fun \power TIME
+\\      entryPeriod : PRIVILEGE \fun CLASS \fun \power TIME
+\\      minPreservedLogSize : \nat
+\\      alarmThresholdSize : \nat
+\where
+        alarmThresholdSize < minPreservedLogSize 
+\\      minPreservedLogSize \leq maxSupportedLogSize     
+\end{schema}
+
+\begin{zed}
+       FLOPPY ::=  noFloppy | emptyFloppy | badFloppy | 
+       enrolmentFile \ldata ValidEnrol \rdata |
+\\ \t3    auditFile \ldata \finset Audit \rdata |
+          configFile \ldata Config \rdata
+\end{zed}
+
+\begin{zed}
+        ADMINOP ::=  archiveLog | updateConfigData |
+        overrideLock | shutdownOp 
+\end{zed}
+
+\begin{zed}
+        KEYBOARD ::= noKB | badKB | keyedOps \ldata ADMINOP \rdata 
+\end{zed}
+
+\begin{schema}{Stats} 
+        successEntry : \nat
+\\      failEntry : \nat
+\\      successBio : \nat
+\\      failBio : \nat
+\end{schema}
+
+\begin{zed}
+       SCREENTEXT ::= clear | welcomeAdmin | busy | removeAdminToken |
+       closeDoor |
+\\ \t3          requestAdminOp | doingOp | invalidRequest | invalidData |
+\\ \t3          insertEnrolmentData | validatingEnrolmentData |
+       enrolmentFailed |
+\\ \t3          archiveFailed | insertBlankFloppy | insertConfigData |
+\also 
+        \t3  displayStats \ldata Stats \rdata | 
+        displayConfigData \ldata Config \rdata
+\end{zed}
+
+\begin{schema}{Screen}
+        screenStats : SCREENTEXT
+\\      screenMsg : SCREENTEXT
+\\      screenConfig : SCREENTEXT 
+\end{schema}
+
+\begin{schema}{TISControlledRealWorld}
+        latch : LATCH
+\\      alarm : ALARM
+\\      display : DISPLAYMESSAGE
+\\      screen : Screen
+\end{schema}
+
+\begin{schema}{TISMonitoredRealWorld}
+        now : TIME
+\\      door : DOOR
+\\      finger : FINGERPRINTTRY
+\\      userToken, adminToken : TOKENTRY
+\\      floppy : FLOPPY
+\\      keyboard : KEYBOARD
+\end{schema}
+
+\begin{zed}
+RealWorld == TISControlledRealWorld \land TISMonitoredRealWorld
+\end{zed}
+
+\begin{axdef}
+        sizeElement : Audit \fun \nat
+\\      sizeLog : \finset Audit \fun \nat
+\where
+        sizeLog \emptyset = 0
+\\      \forall log : \finset Audit; entry : Audit @
+\\ \t1  entry \in log \implies sizeLog~ log = sizeLog~ (log
+\setminus \{ entry \}) + sizeElement~ entry
+\end{axdef}
+
+\begin{schema}{AuditLog}
+        auditLog :\finset Audit
+\\      auditAlarm : ALARM
+\end{schema}
+
+\begin{axdef}
+        oldestLogTime : \finset Audit \fun TIME 
+\\      newestLogTime : \finset Audit \fun TIME
+\where
+        \forall A, B : \finset Audit @
+\\  \t1 newestLogTime (A \cup B) \geq newestLogTime~ A
+\\  \t1 \land oldestLogTime (A \cup B) \leq oldestLogTime~ A
+\end{axdef}
+
+\begin{schema}{KeyStore}
+        issuerKey : ISSUER \pfun KEYPART
+\\      ownName : optional[ISSUER]
+\where
+        ownName \neq nil \implies the~ ownName \in \dom issuerKey 
+\end{schema}
+
+\begin{zed}
+        ADMINPRIVILEGE == \{ guard, auditManager, securityOfficer \}
+\end{zed}
+
+\begin{schema}{Admin}
+        rolePresent : optional[ADMINPRIVILEGE]
+\\      availableOps : \power ADMINOP
+\\      currentAdminOp : optional[ADMINOP]
+\where
+        rolePresent = nil \implies availableOps = \emptyset 
+\\      (rolePresent \neq nil \land the~ rolePresent = guard) \implies availableOps = 
+        \{ overrideLock \}
+\\      (rolePresent \neq nil \land the~ rolePresent = auditManager) \implies availableOps = 
+        \{ archiveLog \}
+\\      (rolePresent \neq nil \land the~ rolePresent = securityOfficer) \implies availableOps = 
+        \{ updateConfigData, shutdownOp \}
+\\      currentAdminOp \neq nil \implies 
+\\ \t1 (the~ currentAdminOp \in availableOps \land rolePresent \neq nil )
+\end{schema}
+
+\begin{schema}{DoorLatchAlarm}
+	currentTime: TIME
+\\	currentDoor: DOOR
+\\	currentLatch: LATCH
+\\	doorAlarm: ALARM
+\\	latchTimeout: TIME
+\\	alarmTimeout: TIME
+\where
+	currentLatch = locked \iff currentTime \geq latchTimeout
+\\	doorAlarm = alarming \iff 
+\\ \t1		(currentDoor = open
+\\ \t2			\land currentLatch = locked
+\\ \t2			\land currentTime \geq alarmTimeout
+			)
+\end{schema}
+
+\begin{schema}{UserToken}
+	currentUserToken: TOKENTRY
+\\	userTokenPresence: PRESENCE
+\end{schema}
+
+\begin{schema}{AdminToken}
+	currentAdminToken: TOKENTRY
+\\	adminTokenPresence: PRESENCE
+\end{schema}
+
+\begin{schema}{Finger}
+	currentFinger: FINGERPRINTTRY
+\\	fingerPresence: PRESENCE
+\end{schema}
+
+\begin{schema}{Floppy}
+	currentFloppy: FLOPPY
+\\      writtenFloppy: FLOPPY
+\\	floppyPresence: PRESENCE
+\end{schema}
+
+\begin{schema}{Keyboard}
+        currentKeyedData: KEYBOARD
+\\      keyedDataPresence : PRESENCE
+\end{schema}  
+
+\begin{zed}
+	STATUS ::= quiescent | 
+\also \t2          gotUserToken |  waitingFinger | gotFinger | waitingUpdateToken | waitingEntry |
+\\ \t2          waitingRemoveTokenSuccess | waitingRemoveTokenFail 
+\also
+\end{zed}
+
+\begin{zed}
+        ENCLAVESTATUS ::= notEnrolled | waitingEnrol | waitingEndEnrol |
+\also \t2          enclaveQuiescent |
+\also \t2          gotAdminToken | waitingRemoveAdminTokenFail |
+waitingStartAdminOp | waitingFinishAdminOp |
+\also \t2          shutdown 
+\end{zed}
+
+\begin{schema}{Internal}
+        status : STATUS
+\\      enclaveStatus : ENCLAVESTATUS
+\\      tokenRemovalTimeout : TIME
+\end{schema}
+
+\begin{schema}{IDStation}
+	UserToken
+\\	AdminToken
+\\	Finger
+\\	DoorLatchAlarm
+\\      Floppy
+\\      Keyboard
+\\      Config
+\\      Stats
+\\      KeyStore
+\\      Admin
+\\      AuditLog
+\\      Internal
+\also
+	currentDisplay: DISPLAYMESSAGE
+\\      currentScreen: Screen
+\where
+	status \in \{~ gotFinger, waitingFinger, waitingUpdateToken, waitingEntry~\} \implies
+\\ \t1		 (( \exists ValidToken @ 
+			goodT(\theta ValidToken) = currentUserToken )
+\\ \t2  \lor ( \exists TokenWithValidAuth @ 
+			goodT(\theta TokenWithValidAuth) = currentUserToken))
+\also
+        rolePresent \neq nil \implies       
+\\ \t1		 ( \exists TokenWithValidAuth @ 
+			goodT(\theta TokenWithValidAuth) = currentAdminToken )
+\also
+        enclaveStatus \notin \{~notEnrolled, waitingEnrol, waitingEndEnrol ~\} \implies       
+\\ \t1          ( ownName \neq nil )
+\also
+        enclaveStatus \in \{~ waitingStartAdminOp, waitingFinishAdminOp ~\} \iff currentAdminOp \neq nil
+\also
+       (currentAdminOp \neq nil \land the~ currentAdminOp \in \{~
+shutdownOp, overrideLock ~\}) 
+\\ \t2          \implies enclaveStatus = waitingStartAdminOp
+\also
+        enclaveStatus = gotAdminToken \implies rolePresent = nil
+\also   % invariants that define the screen
+        currentScreen.screenStats = displayStats (\theta
+        Stats)
+\\      currentScreen.screenConfig = displayConfigData (\theta Config)
+\end{schema}
+
+\begin{schema}{RealWorldChanges}
+        \Delta RealWorld
+\where
+        now' \geq now
+\end{schema}
+
+\begin{schema}{PollTime}
+	\Delta DoorLatchAlarm
+\\       RealWorld
+
+\where
+	currentTime' = now
+\end{schema}
+
+\begin{schema}{PollDoor}
+	\Delta DoorLatchAlarm
+\\	RealWorld
+\where
+	currentDoor' = door
+\\	latchTimeout' = latchTimeout
+\\	alarmTimeout' = alarmTimeout
+\end{schema}
+
+\begin{schema}{PollUserToken}
+        \Delta UserToken
+\\	RealWorld
+\where
+	userTokenPresence' = present \iff userToken \neq noT
+\\	currentUserToken' =  \IF userToken \neq noT \THEN userToken \ELSE currentUserToken
+\end{schema}
+
+\begin{schema}{PollAdminToken}
+	\Delta AdminToken
+\\      RealWorld
+\where
+	adminTokenPresence' = present \iff adminToken \neq noT
+\\	currentAdminToken' = \IF adminToken \neq noT \THEN
+adminToken \ELSE currentAdminToken
+\end{schema}
+
+\begin{schema}{PollFinger}
+	\Delta Finger
+\\	RealWorld
+\where
+	fingerPresence' = present \iff finger \neq noFP
+\\	currentFinger' = \IF finger \neq noFP \THEN finger \ELSE currentFinger
+\end{schema}
+
+\begin{schema}{PollFloppy}
+        \Delta Floppy
+\\      RealWorld
+\where
+	floppyPresence' = present \iff floppy \neq noFloppy
+\\      currentFloppy' = \IF floppy \neq noFloppy \THEN floppy \ELSE currentFloppy
+\\      writtenFloppy' = writtenFloppy
+\end{schema}
+
+\begin{schema}{PollKeyboard}
+        \Delta Keyboard
+\\      RealWorld
+\where
+        keyedDataPresence = present \iff keyboard \neq noKB
+\\        currentKeyedData' = \IF keyboard \neq noKB \THEN keyboard
+        \ELSE currentKeyedData
+\end{schema}
+
+\begin{schema}{AddElementsToLog}
+        Config
+\\      \Delta AuditLog
+\where
+        \exists newElements : \finset_1 Audit @
+\\ \t1        oldestLogTime~ newElements \geq newestLogTime~ auditLog
+\also
+\\ \t1 \land  (auditLog' = auditLog \cup newElements
+\\ \t2  \land (sizeLog~ auditLog' < alarmThresholdSize \land
+auditAlarm' = auditAlarm   
+\\ \t3  \lor  sizeLog~ auditLog' \geq alarmThresholdSize \land
+auditAlarm' = alarming)
+\\ \t4  \lor
+\\ \t1    sizeLog~ auditLog + sizeLog~ newElements > minPreservedLogSize 
+\\ \t2  \land (\exists oldElements : \finset Audit  @ 
+\\ \t3  oldElements \cup auditLog' = auditLog \cup newElements 
+\\ \t3  \land oldestLogTime~ auditLog' \geq newestLogTime~ oldElements)
+\\ \t3  \land sizeLog~ auditLog' \geq minPreservedLogSize
+\\ \t3  \land auditAlarm' = alarming  )            
+\end{schema}
+
+\begin{schema}{AuditAlarm}
+        \Delta DoorLatchAlarm
+\\      AddElementsToLog
+\where
+        doorAlarm \neq doorAlarm' 
+\also
+\end{schema}
+
+\begin{schema}{AuditLatch}
+        \Delta DoorLatchAlarm
+\\        AddElementsToLog
+\where
+        currentLatch' \neq currentLatch 
+\end{schema}
+
+\begin{schema}{AuditDoor}
+        \Delta DoorLatchAlarm
+\\        AddElementsToLog
+\where
+        currentDoor \neq currentDoor'
+\end{schema}
+
+\begin{schema}{AuditLogAlarm}
+        AddElementsToLog
+\where
+        auditAlarm \neq auditAlarm'
+\end{schema}
+
+\begin{schema}{AuditScreen}
+        \Delta IDStation 
+\\      AddElementsToLog
+\where
+        currentScreen'.screenMsg \neq currentScreen.screenMsg 
+\end{schema}
+
+\begin{schema}{AuditDisplay}
+        AddElementsToLog
+\\      \Delta IDStation 
+\where
+        currentDisplay' \neq currentDisplay
+\end{schema}
+
+\begin{schema}{NoChange}
+      \Delta IDStation
+\where
+        currentDoor = currentDoor'
+\\      currentLatch' = currentLatch 
+\\      doorAlarm = doorAlarm' 
+\\      auditAlarm = auditAlarm'
+\\      currentDisplay' = currentDisplay
+\\      currentScreen'.screenMsg = currentScreen.screenMsg 
+\also
+        AddElementsToLog \lor \Xi AuditLog
+\end{schema}
+
+\begin{zed}
+        LogChange == AuditAlarm \lor AuditLatch \lor AuditDoor
+        \lor AuditLogAlarm \lor AuditScreen \lor AuditDisplay 
+\\ \t3 \lor NoChange
+\end{zed}
+
+\begin{schema}{TISPoll}
+	\Delta IDStation
+\\      \Xi RealWorld
+\also
+	PollTime
+\\      PollDoor
+\\	PollUserToken
+\\	PollAdminToken
+\\	PollFinger
+\\      PollFloppy
+\\      PollKeyboard
+\\      LogChange
+\also
+        \Xi Config
+\\      \Xi KeyStore
+\\      \Xi Admin
+\\      \Xi Stats
+\\      \Xi Internal
+\where
+        currentScreen' = currentScreen
+\also
+        currentDisplay = doorUnlocked \land
+        currentLatch' = locked
+\\ \t1 \land        (status \neq waitingRemoveTokenFail \land
+        currentDisplay' = welcome
+\\ \t2 \lor status = waitingRemoveTokenFail \land currentDisplay' =
+removeToken)
+\\      \lor
+        \lnot (currentDisplay = doorUnlocked \land currentLatch' =
+        locked)
+\\ \t1  \land currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{schema}{UpdateLatch}
+	\Xi DoorLatchAlarm
+\\	RealWorldChanges
+\where
+	latch' = currentLatch
+\end{schema}
+
+\begin{schema}{UpdateAlarm}
+	\Xi DoorLatchAlarm
+\\      AuditLog
+\\	RealWorldChanges
+\where
+        alarm' = alarming \iff doorAlarm = alarming \lor auditAlarm = alarming 
+\end{schema}
+
+\begin{schema}{UpdateDisplay}
+	\Delta IDStation
+\\	RealWorldChanges
+\where
+	display' = currentDisplay
+\\      currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{schema}{UpdateScreen}
+        \Delta IDStation
+\\      \Xi Admin
+\\      RealWorldChanges
+\where
+           screen'.screenMsg = currentScreen.screenMsg
+\\           screen'.screenConfig = \IF the~ rolePresent =
+securityOfficer \THEN currentScreen.screenConfig \ELSE clear 
+\\            screen'.screenStats = \IF rolePresent \neq nil
+\THEN currentScreen.screenStats \ELSE clear
+\end{schema}
+
+\begin{zed}
+        TISEarlyUpdate == UpdateLatch \land UpdateAlarm 
+\\ \t3        \land [~ RealWorldChanges | screen' = screen \land
+        display' = display ~]
+\\ \t3   \land [\Delta IDStation | currentDisplay = currentDisplay' ]
+\\ \t3 \land \Xi UserToken \land \Xi AdminToken \land \Xi Finger \land
+\Xi Floppy \land 
+\\ \t3  \Xi Keyboard \land \Xi Config \land
+\Xi Stats  
+\\ \t3 \land \Xi KeyStore \land \Xi Admin \land \Xi Internal
+%\\ \t3 \land ( AddElementsToLog \lor \Xi AuditLog ) 
+\end{zed}
+
+\begin{zed}
+        TISUpdate == UpdateLatch \land UpdateAlarm \land UpdateDisplay \land UpdateScreen
+\\ \t3 \land \Xi UserToken \land \Xi AdminToken \land \Xi Finger \land
+\Xi Floppy \land 
+\\ \t3  \Xi Keyboard \land \Xi Config \land
+\Xi Stats  
+\\ \t3 \land \Xi KeyStore \land \Xi Admin \land \Xi Internal
+%\\ \t3 \land (AddElementsToLog \lor \Xi AuditLog) 
+\end{zed}
+
+\begin{schema}{UpdateUserToken}
+	\Xi IDStation
+\\	RealWorldChanges
+\also
+        \Xi TISControlledRealWorld
+\where
+	userToken' = currentUserToken
+\end{schema}
+
+\begin{schema}{UpdateFloppy}
+        \Delta IDStation
+\\      RealWorldChanges
+\also
+        \Xi UserToken
+\\      \Xi AdminToken
+\\      \Xi Finger
+\\      \Xi DoorLatchAlarm
+\\      \Xi Keyboard
+\\      \Xi Config
+\\      \Xi Stats
+\\      \Xi KeyStore
+\\      \Xi Admin      
+\\      \Xi AuditLog
+\\      \Xi Internal
+\also
+	\Xi TISControlledRealWorld
+\where
+	floppy' = writtenFloppy
+\also
+        currentFloppy' = badFloppy
+\\      floppyPresence' = floppyPresence
+\\      currentDisplay' = currentDisplay
+\\      currentScreen' = currentScreen
+\end{schema}
+
+\begin{schema}{ArchiveLog}
+        Config
+\\      \Delta AuditLog
+\\      archive : \finset Audit
+\where
+        \exists  notArchived,
+        newElements : \finset Audit @
+\\ \t1           archive \subseteq auditLog \cup newElements
+\\ \t1          \land auditLog' \subseteq archive \cup notArchived
+\\ \t1          \land newestLogTime~ archive \leq oldestLogTime~ notArchived 
+\\ \t1          \land AddElementsToLog
+\end{schema}
+
+\begin{schema}{ClearLog}
+        Config
+\\      \Delta AuditLog
+\\      archive : \finset Audit
+\where
+      (\exists sinceArchive,
+        lostSinceArchive : \finset Audit @  
+\\ \t1    archive \cup sinceArchive = lostSinceArchive \cup auditLog 
+\\ \t1    \land oldestLogTime~ sinceArchive \geq newestLogTime~ archive
+\\ \t1    \land newestLogTime~ lostSinceArchive \leq oldestLogTime~ auditLog
+\\ \t1    \land auditLog' = sinceArchive )
+\also
+        (sizeLog~ auditLog' < alarmThresholdSize \land auditAlarm' = silent
+\\ \t1  \lor sizeLog~ auditLog' \geq alarmThresholdSize \land auditAlarm' = alarming)
+
+\end{schema}
+
+\begin{schema}{AddSuccessfulEntryToStats}
+        \Delta Stats
+\where
+        failEntry' = failEntry 
+\\      successEntry' = successEntry + 1
+\\      failBio' = failBio
+\\      successBio' = successBio 
+\end{schema}
+
+\begin{schema}{AddFailedEntryToStats}
+        \Delta Stats
+\where
+        failEntry' = failEntry + 1
+\\      successEntry' = successEntry
+\\      failBio' = failBio
+\\      successBio' = successBio 
+\end{schema}
+
+\begin{schema}{AddSuccessfulBioCheckToStats}
+        \Delta Stats
+\where
+        failEntry' = failEntry 
+\\      successEntry' = successEntry
+\\      failBio' = failBio
+\\      successBio' = successBio + 1
+\end{schema}
+
+\begin{schema}{AddFailedBioCheckToStats}
+        \Delta Stats
+\where
+        failEntry' = failEntry 
+\\      successEntry' = successEntry
+\\      failBio' = failBio + 1
+\\      successBio' = successBio
+\end{schema}
+
+\begin{schema}{UnlockDoor}
+        \Delta DoorLatchAlarm
+\\      Config
+\where
+        latchTimeout' = currentTime + latchUnlockDuration
+\\      alarmTimeout' = currentTime + latchUnlockDuration + alarmSilentDuration
+\\      currentTime' = currentTime
+\\      currentDoor' = currentDoor
+\end{schema}
+
+\begin{schema}{LockDoor}
+        \Delta DoorLatchAlarm
+\where
+        currentLatch' = locked
+\\      latchTimeout' = currentTime
+\\      alarmTimeout' = currentTime 
+\\      currentTime' = currentTime
+\\      currentDoor' = currentDoor
+\end{schema}
+
+\begin{schema}{CertIssuerKnown}
+        KeyStore
+\\      Certificate
+\where
+        iden.issuer \in \dom issuerKey
+\end{schema}
+
+\begin{schema}{CertOK}
+        CertIssuerKnown
+\where
+        issuerKey(iden.issuer) \in isValidatedBy
+\end{schema}
+
+\begin{schema}{CertIssuerIsThisTIS}
+        KeyStore
+\\      Certificate
+\where
+        ownName \neq nil
+\\      iden.issuer = the~ ownName
+\end{schema}
+
+\begin{zed}
+        AuthCertOK == CertIssuerIsThisTIS \land CertOK
+\end{zed}
+
+\begin{schema}{NewAuthCert}
+        ValidToken
+\\      KeyStore
+\\      Config
+\\      newAuthCert : AuthCert
+\\      currentTime : TIME
+\where
+        ownName \neq nil
+\also
+        newAuthCert.iden.issuer = the~ ownName
+\\      newAuthCert.validityPeriod = authPeriod~ privCert.role~
+currentTime
+\\      newAuthCert.baseCertId = idCert.iden
+\\      newAuthCert.tokenID = tokenID
+\\      newAuthCert.role = privCert.role
+\\      newAuthCert.clearance = minClearance ( enclaveClearance ,
+privCert.clearance)
+\\      newAuthCert.isValidatedBy = \{~ issuerKey (the~ ownName) ~\} 
+\end{schema}
+
+\begin{schema}{AddAuthCertToUserToken}
+        \Delta UserToken
+\\      KeyStore
+\\      Config
+\\      currentTime : TIME
+\where
+        userTokenPresence = present
+\\      currentUserToken \in \ran goodT
+\also
+      \exists ValidToken; ValidToken~' @ \theta ValidToken = ((goodT \inv)
+currentUserToken) 
+\\ \t1  \land \theta ValidToken~' = ((goodT \inv) currentUserToken')
+\\ \t1  \land (\exists newAuthCert : AuthCert @ the~ authCert' = newAuthCert
+        \land NewAuthCert)
+\\ \t1  \land tokenID' = tokenID
+\\ \t1  \land idCert' = idCert
+\\ \t1  \land privCert' = privCert
+\\ \t1  \land iandACert' = iandACert
+\also
+        userTokenPresence' = userTokenPresence
+\end{schema}
+
+\begin{schema}{UpdateKeyStore}
+        \Delta KeyStore
+\\      ValidEnrol
+\where
+        the~ ownName' = idStationCert.subject
+\\      issuerKey' = issuerKey \oplus\{ c : issuerCerts @ c.subject \mapsto c.subjectPubK
+        \}
+\\      \t1     \oplus ~\{ the~ ownName \mapsto idStationCert.subjectPubK \} 
+\end{schema}
+
+\begin{schema}{UpdateKeyStoreFromFloppy}
+        \Delta KeyStore
+\\      Floppy
+\where
+        currentFloppy \in \ran enrolmentFile
+\\
+        (\exists ValidEnrol @ \theta ValidEnrol = (enrolmentFile \inv)
+currentFloppy
+\\ \t1  \land UpdateKeyStore)   
+\also
+\end{schema}
+
+\begin{schema}{AdminLogon}
+        \Delta Admin
+\\      AdminToken
+\where
+        rolePresent = nil
+\also
+        \exists ValidToken @
+\\ \t1  (goodT(\theta ValidToken )  = currentAdminToken
+\\ \t1  \land the~ rolePresent' = (the~ authCert).role)
+\also
+        currentAdminOp' = nil
+\end{schema}
+
+\begin{schema}{AdminLogout}
+        \Delta Admin
+\where
+        rolePresent \neq nil
+\also
+        rolePresent' = nil
+\\      currentAdminOp' = nil
+\end{schema}
+
+\begin{schema}{AdminStartOp}
+        \Delta Admin
+\\      Keyboard
+\where
+        rolePresent \neq nil
+\\      currentAdminOp = nil
+\\      currentKeyedData \in keyedOps \limg availableOps \rimg
+\also
+        rolePresent' = rolePresent
+\\      the~ currentAdminOp' = (keyedOps \inv) currentKeyedData
+\end{schema}
+
+\begin{schema}{AdminFinishOp}
+        \Delta Admin
+\where
+        rolePresent \neq nil
+\\      currentAdminOp \neq nil
+\also
+        rolePresent' = rolePresent
+\\      currentAdminOp' = nil 
+\end{schema}
+
+\begin{schema}{ResetScreenMessage}
+        \Delta Internal
+\\      \Delta Admin
+\\      currentScreen, currentScreen' : Screen
+\where
+        status' \notin \{ quiescent, waitingRemoveTokenFail \} 
+\\ \t1 \land currentScreen'.screenMsg = busy
+\\      \lor
+\\      status' \in \{ quiescent, waitingRemoveTokenFail \}
+\\ \t1 \land (enclaveStatus' = enclaveQuiescent \land rolePresent' = nil 
+\\ \t3          \land currentScreen'.screenMsg = welcomeAdmin
+\\ \t2 \lor enclaveStatus' = enclaveQuiescent \land rolePresent' \neq nil 
+\\ \t3          \land currentScreen'.screenMsg = requestAdminOp
+\\ \t2 \lor enclaveStatus' = waitingRemoveAdminTokenFail 
+\\ \t3          \land currentScreen'.screenMsg = removeAdminToken
+\\ \t2 \lor enclaveStatus' \notin 
+        \{ enclaveQuiescent, waitingRemoveAdminTokenFail \} 
+\\ \t3          \land currentScreen'.screenMsg = currentScreen.screenMsg)
+\end{schema}
+
+\begin{schema}{UserEntryContext}
+        \Delta IDStation
+\\      RealWorldChanges
+\also
+        \Xi Config
+\\      \Xi AdminToken
+\\      \Xi KeyStore
+\\      \Xi Admin
+\\      \Xi Keyboard
+\\      \Xi Floppy
+\\      \Xi Finger
+\also
+\\      \Xi TISControlledRealWorld
+\also
+\\      ResetScreenMessage
+\where
+        enclaveStatus' = enclaveStatus
+\\      status \neq waitingEntry \implies tokenRemovalTimeout' = tokenRemovalTimeout
+\end{schema} 
+
+\begin{schema}{UserTokenTorn}
+        UserEntryContext
+\also
+	\Xi UserToken
+\\      \Xi DoorLatchAlarm
+\\      AddFailedEntryToStats
+\also
+        AddElementsToLog     
+\where
+        status \in \{ gotUserToken, waitingUpdateToken,
+waitingFinger, gotFinger, waitingEntry \}
+\\      userTokenPresence = absent
+\also
+        currentDisplay' = welcome
+\\      status' = quiescent 
+\end{schema}
+
+\begin{schema}{ReadUserToken}
+        UserEntryContext
+\also
+        \Xi UserToken
+\\	\Xi DoorLatchAlarm
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\where
+        enclaveStatus \in \{ enclaveQuiescent,
+        waitingRemoveAdminTokenFail \}
+\also
+	status = quiescent
+\\	userTokenPresence = present
+\also
+	currentDisplay' = wait
+\\	status' = gotUserToken
+\end{schema}
+
+\begin{zed}
+        TISReadUserToken ==  ReadUserToken
+\end{zed}
+
+\begin{schema}{UserTokenWithOKAuthCert}
+        KeyStore
+\\      UserToken
+\\      currentTime : TIME
+\where
+        currentUserToken \in \ran goodT
+\\	\exists TokenWithValidAuth @ 
+\\ \t1		(
+		goodT(\theta TokenWithValidAuth) = currentUserToken
+\\ \t1		\land currentTime \in (the~ authCert).validityPeriod
+\\ \t1          \land (\exists IDCert @ \theta IDCert = idCert \land CertOK )
+\\ \t1          \land (\exists AuthCert @ \theta AuthCert = the~
+authCert \land AuthCertOK )  
+		)
+\end{schema}
+
+\begin{schema}{UserTokenOK}
+        KeyStore
+\\      UserToken
+\\      currentTime : TIME
+\where
+ 	currentUserToken \in \ran goodT
+\\	\exists CurrentToken @ 
+\\ \t1		(
+		goodT(\theta ValidToken) = currentUserToken
+\\ \t1		\land now = currentTime
+\\ \t1          \land (\exists IDCert @ \theta IDCert = idCert \land CertOK )
+\\ \t1          \land (\exists PrivCert @ \theta PrivCert = privCert
+\land CertOK )
+\\ \t1          \land (\exists IandACert @ \theta IandACert =
+iandACert \land CertOK )  
+                )
+\end{schema}
+
+\begin{schema}{BioCheckNotRequired}
+        UserEntryContext
+\also
+        \Xi UserToken
+\\      \Xi DoorLatchAlarm        
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\where
+        status = gotUserToken
+\\      userTokenPresence = present
+\also
+        UserTokenWithOKAuthCert
+\also
+        status' = waitingEntry
+\\      currentDisplay' = wait
+\end{schema}
+
+\begin{schema}{BioCheckRequired}
+        UserEntryContext
+\also
+        \Xi UserToken
+\\      \Xi DoorLatchAlarm        
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\where
+        status = gotUserToken
+\\      userTokenPresence = present
+\also
+        \lnot UserTokenWithOKAuthCert \land UserTokenOK
+\also
+	currentDisplay' = insertFinger
+\\	status' = waitingFinger
+\end{schema}
+
+\begin{zed}
+ValidateUserTokenOK == BioCheckRequired \lor BioCheckNotRequired
+\end{zed}
+
+\begin{schema}{ValidateUserTokenFail}
+        UserEntryContext
+\also
+        \Xi UserToken
+\\      \Xi DoorLatchAlarm
+\\      \Xi Stats       
+\also
+        AddElementsToLog
+\where
+        status = gotUserToken
+\\      userTokenPresence = present
+\also
+        \lnot UserTokenWithOKAuthCert \land \lnot UserTokenOK 
+\also
+        currentDisplay' = removeToken
+\\      status' = waitingRemoveTokenFail
+\end{schema}
+
+\begin{zed}
+        TISValidateUserToken == ValidateUserTokenOK \lor
+        ValidateUserTokenFail 
+\\ \t4 \lor
+        [~UserTokenTorn | status = gotUserToken ]
+\end{zed}
+
+\begin{schema}{ReadFingerOK}
+        UserEntryContext
+\also
+        \Xi DoorLatchAlarm
+\\	\Xi UserToken
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\where
+	status = waitingFinger
+\\	fingerPresence = present
+\\      userTokenPresence = present
+\also
+\\	currentDisplay' = wait
+\\	status' = gotFinger
+\end{schema}
+
+\begin{schema}{NoFinger}
+        \Xi IDStation
+\\      RealWorldChanges
+\also
+        \Xi TISControlledRealWorld
+\where
+        status = waitingFinger
+\\      fingerPresence = absent
+\\      userTokenPresence = present
+\end{schema}
+
+\begin{schema}{FingerTimeout}
+        UserEntryContext
+\also
+        \Xi UserToken
+\\      \Xi DoorLatchAlarm
+\\      \Xi Stats       
+\also
+        AddElementsToLog
+\where
+        status = waitingFinger
+\\      userTokenPresence = present
+\also
+        currentDisplay' = removeToken
+\\      status' = waitingRemoveTokenFail
+\end{schema}
+
+\begin{zed}
+        TISReadFinger == ReadFingerOK \lor
+        FingerTimeout \lor NoFinger 
+\\ \t4  \lor [~ UserTokenTorn | status = waitingFinger ~]
+\end{zed}
+
+\begin{schema}{FingerOK}
+        Finger
+\\      UserToken
+\where
+        currentFinger \in \ran goodFP
+\end{schema}
+
+\begin{schema}{ValidateFingerOK}
+	UserEntryContext
+\also
+	\Xi DoorLatchAlarm
+\\      \Xi UserToken
+\also
+        AddSuccessfulBioCheckToStats
+\\      AddElementsToLog
+\where
+	status = gotFinger
+\\      userTokenPresence = present
+\also
+        FingerOK
+\also
+	status' = waitingUpdateToken
+\\	currentDisplay' = wait
+\end{schema}
+
+\begin{schema}{ValidateFingerFail}
+        UserEntryContext
+\also
+	\Xi UserToken
+\\      \Xi DoorLatchAlarm
+\also      
+        AddFailedBioCheckToStats
+\\      AddElementsToLog
+\where
+        status = gotFinger
+\\      userTokenPresence = present
+\also
+        currentDisplay' = removeToken
+\\      status' = waitingRemoveTokenFail
+\end{schema}
+
+\begin{zed}
+        TISValidateFinger == ValidateFingerOK \lor ValidateFingerFail
+\\ \t4  \lor [~ UserTokenTorn | status = gotFinger ~]
+\end{zed}
+
+\begin{schema}{WriteUserTokenOK}
+	UserEntryContext
+\also
+	\Xi DoorLatchAlarm
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\\      AddAuthCertToUserToken
+\where
+	status = waitingUpdateToken
+\\      userTokenPresence = present
+\also
+        status' = waitingEntry
+\\      currentDisplay' = wait
+\end{schema}
+
+\begin{schema}{WriteUserTokenFail}
+	UserEntryContext
+\also
+	\Xi DoorLatchAlarm
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\\      AddAuthCertToUserToken
+\where
+	status = waitingUpdateToken
+\\      userTokenPresence = present
+\also
+        status' = waitingEntry
+\\      currentDisplay' = tokenUpdateFailed
+\end{schema}
+
+\begin{zed}
+WriteUserToken == WriteUserTokenOK \lor WriteUserTokenFail
+\end{zed}
+
+\begin{zed}
+        TISWriteUserToken == (
+        WriteUserToken \semi UpdateUserToken )
+\\ \t4          \lor [~ UserTokenTorn | status = waitingUpdateToken ~] 
+\end{zed}
+
+\begin{schema}{UserAllowedEntry}
+        UserToken
+\\      Config
+\\      currentTime: TIME
+\where
+        (\exists ValidToken @ 
+\\ \t1  goodT (\theta ValidToken) = currentUserToken
+\\ \t1  \land currentTime \in entryPeriod~ privCert.role~
+privCert.clearance.class )
+\\ \lor
+        (\exists TokenWithValidAuth @ 
+\\ \t1 goodT(\theta TokenWithValidAuth) = currentUserToken 
+\\ \t1 \land currentTime \in entryPeriod~
+        (the~ authCert).role~ (the~ authCert).clearance.class)
+\end{schema}
+
+\begin{schema}{EntryOK}
+        UserEntryContext
+\also
+        \Xi DoorLatchAlarm
+\\      \Xi UserToken
+\\      \Xi Stats
+\also
+        AddElementsToLog
+\where
+        status = waitingEntry
+\\      userTokenPresence = present
+\also
+        UserAllowedEntry
+\also
+        currentDisplay' = openDoor
+\\      status' = waitingRemoveTokenSuccess
+\\      tokenRemovalTimeout' = currentTime + tokenRemovalDuration
+\end{schema}
+
+\begin{schema}{EntryNotAllowed}
+        UserEntryContext
+\also
+        \Xi DoorLatchAlarm
+\\      \Xi UserToken
+\\      \Xi Stats       
+\also
+        AddElementsToLog
+\where
+        status = waitingEntry
+\\      userTokenPresence = present
+\also
+        \lnot UserAllowedEntry
+\also
+        currentDisplay' = removeToken
+\\      status' = waitingRemoveTokenFail
+\\      tokenRemovalTimeout' = tokenRemovalTimeout
+\end{schema}
+
+\begin{zed}
+        TISValidateEntry == EntryOK
+\\ \t4          \lor EntryNotAllowed
+\\ \t4          \lor [~ UserTokenTorn | status = waitingEntry ~] 
+\end{zed}
+
+\begin{schema}{UnlockDoorOK}
+        UserEntryContext
+\also
+      \Xi UserToken
+\also
+        UnlockDoor
+\\      AddSuccessfulEntryToStats
+\\      AddElementsToLog
+\where
+        status = waitingRemoveTokenSuccess
+\\      userTokenPresence = absent
+\also
+        currentDisplay' = doorUnlocked
+\\      status' = quiescent
+\end{schema}
+
+\begin{schema}{WaitingTokenRemoval}
+        \Xi IDStation
+\\      RealWorldChanges
+\also
+        \Xi TISControlledRealWorld
+\where
+        status \in \{ waitingRemoveTokenSuccess, 
+waitingRemoveTokenFail \}
+\\      status = waitingRemoveTokenSuccess \implies currentTime \leq tokenRemovalTimeout 
+\\      userTokenPresence = present
+\end{schema}
+
+\begin{schema}{TokenRemovalTimeout}
+        UserEntryContext
+\also
+        \Xi DoorLatchAlarm
+\\      \Xi UserToken
+\\      \Xi Stats       
+\also
+        AddElementsToLog
+\where
+        status = waitingRemoveTokenSuccess
+\\      currentTime > tokenRemovalTimeout 
+\\      userTokenPresence = present
+\also
+        status' = waitingRemoveTokenFail
+\\      currentDisplay' = removeToken
+\end{schema}
+
+\begin{zed}
+        TISUnlockDoor == UnlockDoorOK 
+\\      \t2 \lor [ WaitingTokenRemoval |status =
+waitingRemoveTokenSuccess ]
+\\      \t2 \lor TokenRemovalTimeout
+\end{zed}
+
+\begin{schema}{FailedAccessTokenRemoved}
+        UserEntryContext
+\also
+	\Xi UserToken
+\\      \Xi DoorLatchAlarm
+\also
+        AddFailedEntryToStats
+\\      AddElementsToLog
+\where
+        status = waitingRemoveTokenFail
+\\      userTokenPresence = absent
+\also
+        currentDisplay' = welcome
+\\      status' = quiescent
+\end{schema}
+
+\begin{zed}
+        TISCompleteFailedAccess == FailedAccessTokenRemoved 
+\\      \t2     \lor [ WaitingTokenRemoval | status = waitingRemoveTokenFail ] 
+\end{zed}
+
+\begin{zed}
+        TISUserEntryOp == TISReadUserToken \lor TISValidateUserToken \lor TISReadFinger \lor
+                TISValidateFinger 
+\\ \t4          \lor TISWriteUserToken \lor  TISValidateEntry \lor TISUnlockDoor \lor
+                TISCompleteFailedAccess 
+\end{zed}
+
+\begin{schema}{EnclaveContext}
+        \Delta IDStation
+\\      RealWorldChanges
+\also
+        \Xi TISControlledRealWorld
+\also
+        \Xi UserToken
+\\      \Xi AdminToken
+\\      \Xi Finger
+\\      \Xi Stats
+\where
+        tokenRemovalTimeout' = tokenRemovalTimeout
+\end{schema}
+
+\begin{schema}{EnrolContext}
+        EnclaveContext
+\also
+        \Xi Keyboard
+\\      \Xi Admin
+\\      \Xi DoorLatchAlarm
+\\      \Xi Config
+\\      \Xi Floppy
+\end{schema}
+
+\begin{schema}{RequestEnrolment}
+        EnrolContext
+\also
+        \Xi KeyStore
+\\      \Xi AuditLog
+\\      \Xi Internal
+\where
+        enclaveStatus = notEnrolled
+\\      floppyPresence = absent
+\also
+        currentScreen'.screenMsg = insertEnrolmentData
+\also
+        currentDisplay' = blank
+\end{schema}
+
+\begin{schema}{ReadEnrolmentFloppy}
+        EnrolContext
+\also
+        \Xi KeyStore
+\where
+        enclaveStatus = notEnrolled
+\\      floppyPresence = present
+\also
+        currentScreen'.screenMsg = validatingEnrolmentData 
+\also
+        enclaveStatus' = waitingEnrol     
+\\      status' = status
+\\      currentDisplay' = blank                         
+\end{schema}
+
+\begin{zed}
+        ReadEnrolmentData == ReadEnrolmentFloppy \lor RequestEnrolment
+\end{zed}
+
+\begin{schema}{EnrolmentDataOK}
+        Floppy
+\\      KeyStore
+\where
+        currentFloppy \in \ran enrolmentFile
+\\      (\exists ValidEnrol @ \theta ValidEnrol = (enrolmentFile \inv)
+currentFloppy)
+\end{schema}
+
+\begin{schema}{ValidateEnrolmentDataOK}
+        EnrolContext
+\also
+        UpdateKeyStoreFromFloppy
+\\      AddElementsToLog
+\where
+        enclaveStatus = waitingEnrol
+\also
+        EnrolmentDataOK
+\also
+        currentScreen'.screenMsg = welcomeAdmin
+\also
+        enclaveStatus' = enclaveQuiescent 
+\\      status' = quiescent
+\\      currentDisplay' = welcome
+\end{schema}
+
+\begin{schema}{ValidateEnrolmentDataFail}
+        EnrolContext
+\also
+        \Xi KeyStore
+\also
+        AddElementsToLog
+\where
+        enclaveStatus = waitingEnrol
+\also
+        \lnot EnrolmentDataOK
+\also
+        currentScreen'.screenMsg = enrolmentFailed
+\also
+        enclaveStatus' = waitingEndEnrol
+\\      status' = status
+\\      currentDisplay' = blank
+\end{schema}
+
+\begin{zed}
+        ValidateEnrolmentData == ValidateEnrolmentDataOK \lor
+          ValidateEnrolmentDataFail
+\end{zed}
+
+\begin{schema}{FailedEnrolFloppyRemoved}
+        EnrolContext
+\also
+        \Xi KeyStore
+\where
+        enclaveStatus = waitingEndEnrol
+\\      floppyPresence = absent
+\also
+        currentScreen'.screenMsg = insertEnrolmentData
+\also
+        enclaveStatus' = notEnrolled
+\\      status' = status
+\\      currentDisplay' = blank
+\end{schema}
+
+\begin{schema}{WaitingFloppyRemoval}
+        EnclaveContext
+\also
+        \Xi IDStation
+\where
+        enclaveStatus = waitingEndEnrol
+\\      floppyPresence = present
+\end{schema}
+
+\begin{zed}
+        CompleteFailedEnrolment == FailedEnrolFloppyRemoved  
+         \lor WaitingFloppyRemoval
+\end{zed}
+
+\begin{zed}
+        TISEnrolOp == ReadEnrolmentData \lor
+ValidateEnrolmentData 
+\\      \t4 \lor CompleteFailedEnrolment
+\end{zed}
+
+\begin{schema}{AdminTokenTear}
+         EnclaveContext
+\also
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi Keyboard
+\\      \Xi DoorLatchAlarm
+\\      \Xi KeyStore
+\\      ResetScreenMessage
+\where
+        adminTokenPresence = absent
+\also   
+        status' = status
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = enclaveQuiescent
+\end{schema}
+
+\begin{schema}{BadAdminTokenTear} 
+        AdminTokenTear
+\also
+        AddElementsToLog
+\where
+        enclaveStatus \in \{gotAdminToken, waitingStartAdminOp, waitingFinishAdminOp \}
+\end{schema}
+
+\begin{schema}{BadAdminLogout}
+        BadAdminTokenTear
+\\      AdminLogout
+\where
+        enclaveStatus \in \{ waitingStartAdminOp, waitingFinishAdminOp
+        \}
+\end{schema}
+
+\begin{schema}{LoginAborted}
+        BadAdminTokenTear
+\\      \Xi Admin
+\where
+        enclaveStatus = gotAdminToken
+\end{schema}
+
+\begin{schema}{LoginContext}
+        EnclaveContext
+\also
+        \Xi Keyboard
+\\      \Xi KeyStore
+\\      \Xi DoorLatchAlarm
+\\      \Xi Config
+\\      \Xi Floppy
+\where
+        status' = status
+\\      currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{schema}{ReadAdminToken}
+         LoginContext
+\also
+        \Xi Admin
+\also
+        AddElementsToLog
+\where
+        status \in \{~ quiescent, waitingRemoveTokenFail ~\}
+\also
+        enclaveStatus = enclaveQuiescent
+\\      rolePresent = nil
+\\	adminTokenPresence = present
+\also
+	enclaveStatus' = gotAdminToken
+\\      currentScreen' = currentScreen
+\end{schema}
+
+\begin{zed}
+        TISReadAdminToken == 
+                ReadAdminToken   
+\end{zed}
+
+\begin{schema}{AdminTokenOK}
+        AdminToken
+\\      KeyStore
+\\      currentTime : TIME        
+\where
+        currentAdminToken \in \ran goodT
+\also
+        \exists TokenWithValidAuth @
+\\ \t1  (goodT(\theta TokenWithValidAuth )  = currentAdminToken
+\\ \t1  \land (\exists IDCert @ \theta IDCert = idCert \land CertOK )
+\\ \t1  \land (\exists AuthCert @ \theta AuthCert = the~ authCert \land
+AuthCertOK )
+\\ \t1  \land (the~ authCert).role \in ADMINPRIVILEGE 
+\\ \t1  \land currentTime \in (the~ authCert).validityPeriod)
+\end{schema}
+
+\begin{schema}{ValidateAdminTokenOK}
+        LoginContext
+\also
+        AdminLogon
+\also
+        AddElementsToLog
+\where
+        enclaveStatus = gotAdminToken
+\\      adminTokenPresence = present
+\also
+        AdminTokenOK
+\also   
+        currentScreen'.screenMsg = requestAdminOp 
+\also
+        enclaveStatus' = enclaveQuiescent
+\end{schema}
+
+\begin{schema}{ValidateAdminTokenFail}
+        LoginContext
+\also
+        \Xi Admin
+\also
+        AddElementsToLog
+\where
+        enclaveStatus = gotAdminToken
+\\      adminTokenPresence = present
+\also
+        \lnot AdminTokenOK
+\also
+        currentScreen'.screenMsg = removeAdminToken
+\also
+        enclaveStatus' = waitingRemoveAdminTokenFail
+\end{schema}
+
+\begin{zed}
+        TISValidateAdminToken == ValidateAdminTokenOK \lor
+        ValidateAdminTokenFail 
+\\ \t4  \lor
+        LoginAborted
+\end{zed}
+
+\begin{schema}{FailedAdminTokenRemoved}
+        LoginContext
+\also
+        \Xi Admin
+\also 
+        AddElementsToLog
+\where
+        enclaveStatus = waitingRemoveAdminTokenFail
+\\      adminTokenPresence = absent
+\also
+        currentScreen'.screenMsg = welcomeAdmin
+\also
+        enclaveStatus' = enclaveQuiescent
+\also
+        currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{schema}{WaitingAdminTokenRemoval}
+        EnclaveContext
+\also
+        \Xi IDStation
+\where
+        enclaveStatus = waitingRemoveAdminTokenFail
+\\      adminTokenPresence = present     
+\end{schema}
+
+\begin{zed}
+        TISCompleteFailedAdminLogon == FailedAdminTokenRemoved 
+\lor WaitingAdminTokenRemoval
+\end{zed}
+
+\begin{zed}
+        TISAdminLogon == TISReadAdminToken \lor TISValidateAdminToken \lor TISCompleteFailedAdminLogon
+\end{zed}
+
+\begin{schema}{TokenRemovedAdminLogout}
+        AdminTokenTear
+\\      AdminLogout
+\also
+        AddElementsToLog
+\where
+        enclaveStatus = enclaveQuiescent 
+\\      rolePresent \neq nil
+\end{schema}
+
+\begin{schema}{AdminTokenTimeout}
+        LoginContext
+\also
+        AdminLogout
+\\      AddElementsToLog
+\\      ResetScreenMessage
+\where
+        enclaveStatus = enclaveQuiescent 
+\\      adminTokenPresence = present
+\\      rolePresent \neq nil
+\also
+        \lnot AdminTokenOK
+\also
+        enclaveStatus' = waitingRemoveAdminTokenFail
+\end{schema}
+
+\begin{zed}
+TISCompleteTimeoutAdminLogout == TISCompleteFailedAdminLogon
+\end{zed}
+
+\begin{zed}
+TISAdminLogout ==  TokenRemovedAdminLogout \lor AdminTokenTimeout \lor TISCompleteTimeoutAdminLogout 
+\end{zed}
+
+\begin{schema}{AdminOpContext}
+        EnclaveContext
+\also
+        \Xi Keyboard
+\\      \Xi KeyStore
+\end{schema}
+
+\begin{schema}{AdminOpStartedContext}
+        AdminOpContext
+\where
+        enclaveStatus = waitingStartAdminOp
+\\      adminTokenPresence = present
+\also
+        status' = status
+\end{schema}
+
+\begin{schema}{AdminOpFinishContext}
+        AdminOpContext
+\also
+        AdminFinishOp
+\where
+        enclaveStatus = waitingFinishAdminOp
+\\      adminTokenPresence = present
+\also
+        status' = status
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = enclaveQuiescent
+\end{schema}
+
+\begin{schema}{StartOpContext}
+        EnclaveContext
+\also
+        \Xi DoorLatchAlarm
+\\      \Xi Keyboard
+\\      \Xi Config
+\\      \Xi Floppy
+\\      \Xi KeyStore
+\where
+        enclaveStatus = enclaveQuiescent
+\\      adminTokenPresence = present
+\\      rolePresent \neq nil
+\\      status \in \{~ quiescent, waitingRemoveTokenFail ~\}
+\also
+        status' = status
+\\      currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{schema}{ValidateOpRequestOK}
+        StartOpContext
+\also
+        AdminStartOp
+\also
+        AddElementsToLog
+\where
+        keyedDataPresence = present
+\\      currentKeyedData  \in keyedOps \limg availableOps \rimg
+\also
+        currentScreen'.screenMsg = doingOp
+\also
+        enclaveStatus' = waitingStartAdminOp
+\end{schema}
+
+\begin{schema}{ValidateOpRequestFail}
+        StartOpContext
+\also
+        \Xi Admin
+\also
+        AddElementsToLog
+\where
+        keyedDataPresence = present
+\\      currentKeyedData  \notin keyedOps \limg availableOps \rimg
+\also
+        currentScreen'.screenMsg = invalidRequest
+\also
+        enclaveStatus' = enclaveStatus
+\end{schema}
+
+\begin{schema}{NoOpRequest}
+        StartOpContext
+\also
+        \Xi IDStation
+\where
+        keyedDataPresence = absent
+\end{schema}
+
+\begin{zed}
+        ValidateOpRequest == ValidateOpRequestOK \lor
+        ValidateOpRequestFail \lor NoOpRequest
+\end{zed}
+
+\begin{zed}
+        TISStartAdminOp == ValidateOpRequest
+\end{zed}
+
+\begin{schema}{StartArchiveLogOK}
+        AdminOpStartedContext
+\also   
+        \Xi Config
+\\      \Xi Admin 
+\\      \Xi DoorLatchAlarm    
+\where
+        the~ currentAdminOp = archiveLog
+\\      floppyPresence = present
+\also
+        floppyPresence' = floppyPresence
+\\      currentFloppy' = currentFloppy
+\also
+        currentScreen'.screenMsg = doingOp
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = waitingFinishAdminOp
+\\      (\exists archive : \finset Audit @ ArchiveLog \land
+writtenFloppy' = auditFile~ archive )
+\end{schema}
+
+\begin{schema}{StartArchiveLogWaitingFloppy}
+        AdminOpStartedContext
+\also   
+        \Xi Config
+\\      \Xi Admin 
+\\      \Xi DoorLatchAlarm    
+\\      \Xi Floppy
+\where
+        the~ currentAdminOp = archiveLog
+\\      floppyPresence = absent
+\also
+        currentScreen'.screenMsg = insertBlankFloppy
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = enclaveStatus
+\end{schema}
+
+\begin{zed}
+        StartArchiveLog == (StartArchiveLogOK \semi UpdateFloppy) 
+\\ \t4                  \lor StartArchiveLogWaitingFloppy
+\\ \t4  \lor
+        [~ BadAdminLogout | enclaveStatus = waitingStartAdminOp 
+\\ \t6                          \land the~ currentAdminOp = archiveLog 
+                                ~]
+\end{zed}
+
+\begin{zed}
+        ClearLogThenAddElements == ClearLog \semi AddElementsToLog
+\end{zed}
+
+\begin{schema}{FinishArchiveLogOK}
+        AdminOpFinishContext
+\also
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\where
+        the~ currentAdminOp = archiveLog
+\\      floppyPresence = present
+\also
+        writtenFloppy = currentFloppy
+\also
+        (\exists archive : \finset Audit @ ClearLogThenAddElements
+         \land
+        writtenFloppy = auditFile~ archive )
+\also
+        currentScreen'.screenMsg = requestAdminOp
+\end{schema}
+
+\begin{schema}{FinishArchiveLogNoFloppy}
+        AdminOpFinishContext
+\also
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\also
+        AddElementsToLog
+\where
+       the~ currentAdminOp = archiveLog
+\\      floppyPresence = absent
+\also
+\\      currentScreen'.screenMsg = archiveFailed
+\end{schema}
+
+\begin{schema}{FinishArchiveLogBadMatch}
+        AdminOpFinishContext
+\also
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\also
+        AddElementsToLog
+\where
+        the~ currentAdminOp = archiveLog
+\\      floppyPresence = present
+\also
+        writtenFloppy \neq currentFloppy
+\also
+        currentScreen'.screenMsg = archiveFailed
+\end{schema}
+
+\begin{zed}
+        FinishArchiveLogFail == FinishArchiveLogBadMatch \lor
+        FinishArchiveLogNoFloppy
+\also
+\end{zed}
+
+\begin{zed}
+        FinishArchiveLog == FinishArchiveLogOK \lor FinishArchiveLogFail
+\\ \t4  \lor
+        [~ BadAdminLogout | enclaveStatus = waitingFinishAdminOp
+\\ \t6  \land the~ currentAdminOp = archiveLog      ~]
+\end{zed}
+
+\begin{zed}
+        TISArchiveLogOp == StartArchiveLog \lor FinishArchiveLog
+\end{zed}
+
+\begin{schema}{StartUpdateConfigOK}
+        AdminOpStartedContext
+\also   
+        \Xi Floppy
+\\      \Xi Config
+\\      \Xi Admin     
+\\      \Xi DoorLatchAlarm
+\where
+       the~ currentAdminOp = updateConfigData
+\\      floppyPresence = present
+\also
+        currentScreen'.screenMsg = doingOp
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = waitingFinishAdminOp
+\end{schema}
+
+\begin{schema}{StartUpdateConfigWaitingFloppy}
+        AdminOpStartedContext
+\also   
+        \Xi Config
+\\      \Xi Admin 
+\\      \Xi Floppy    
+\\      \Xi DoorLatchAlarm
+\where
+        the~ currentAdminOp = updateConfigData
+\\      floppyPresence = absent
+\also
+        currentScreen'.screenMsg = insertConfigData
+\\      currentDisplay' = currentDisplay
+\also
+        enclaveStatus' = enclaveStatus
+\end{schema}
+
+\begin{zed}
+        StartUpdateConfigData== StartUpdateConfigOK  
+         \lor StartUpdateConfigWaitingFloppy
+\\ \t4  \lor
+        [~ BadAdminLogout | enclaveStatus = waitingStartAdminOp 
+\\ \t6  \land the~ currentAdminOp = updateConfigData      ~]
+\end{zed}
+
+\begin{schema}{FinishUpdateConfigDataOK}
+        AdminOpFinishContext
+\also
+        \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\also
+        AddElementsToLog
+\where
+        the~ currentAdminOp = updateConfigData
+\also        
+        currentFloppy \in \ran configFile
+\also
+        \theta Config~' = (configFile \inv) currentFloppy
+\also
+        currentScreen'.screenMsg = requestAdminOp
+\end{schema}
+
+\begin{schema}{FinishUpdateConfigDataFail}
+        AdminOpFinishContext
+\also
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\also
+        AddElementsToLog
+\where
+        the~ currentAdminOp = updateConfigData
+\also        
+        currentFloppy \notin \ran configFile
+\also
+        currentScreen'.screenMsg = invalidData
+\end{schema}
+
+\begin{zed}
+        FinishUpdateConfigData == FinishUpdateConfigDataOK \lor
+        FinishUpdateConfigDataFail
+\\ \t4  \lor
+        [~ BadAdminLogout | enclaveStatus = waitingFinishAdminOp 
+\\ \t6  \land the~ currentAdminOp = updateConfigData      ~]
+\end{zed}
+
+\begin{zed}
+        TISUpdateConfigDataOp == StartUpdateConfigData \lor FinishUpdateConfigData
+\end{zed}
+
+\begin{schema}{ShutdownOK}
+        AdminOpContext
+\also   
+        \Xi Config
+\\      \Xi Floppy
+\also
+        AddElementsToLog
+\\      LockDoor
+\\      AdminLogout
+\where
+        enclaveStatus = waitingStartAdminOp
+\\      the~ currentAdminOp = shutdownOp
+\\      currentDoor = closed
+\also
+        currentScreen'.screenMsg = clear
+\also
+        enclaveStatus' = shutdown
+\\      currentDisplay' = blank
+\end{schema}
+
+\begin{schema}{ShutdownWaitingDoor}
+        AdminOpContext
+\also   
+        \Xi Config
+\\      \Xi Floppy
+\\      \Xi DoorLatchAlarm
+\\      \Xi Admin
+\where
+        enclaveStatus = waitingStartAdminOp
+\\      the~ currentAdminOp = shutdownOp
+\\      currentDoor = open
+\also
+        currentScreen'.screenMsg = closeDoor
+\also
+        enclaveStatus' = enclaveStatus
+\\      currentDisplay' = currentDisplay
+\end{schema}
+
+\begin{zed}
+        TISShutdownOp == ShutdownOK \lor ShutdownWaitingDoor
+\end{zed}
+
+\begin{schema}{OverrideDoorLockOK}
+        AdminOpStartedContext
+\also   
+        \Xi Floppy
+\\      \Xi Config
+\also
+        AddElementsToLog
+\\      AdminFinishOp
+\\      UnlockDoor
+\where
+        the~ currentAdminOp = overrideLock
+\also
+        currentScreen'.screenMsg = requestAdminOp
+\\      currentDisplay' = doorUnlocked
+\also
+        enclaveStatus' = enclaveQuiescent
+\end{schema}
+
+\begin{zed}
+        TISOverrideDoorLockOp == OverrideDoorLockOK
+\\ \t4  \lor
+        [~ BadAdminLogout | enclaveStatus = waitingStartAdminOp 
+\\ \t6  \land the~ currentAdminOp = overrideLock     ~]
+\end{zed}
+
+\begin{schema}{InitDoorLatchAlarm}
+        DoorLatchAlarm
+\where
+	currentTime = zeroTime
+\\	currentDoor = closed
+\\	latchTimeout = zeroTime
+\\	alarmTimeout = zeroTime
+\end{schema}
+
+\begin{schema}{InitKeyStore}
+        KeyStore
+\where
+        issuerKey = \emptyset
+\\      ownName = nil
+\end{schema}
+
+\begin{schema}{InitConfig}
+        Config
+\where
+	alarmSilentDuration = 10
+\\      latchUnlockDuration = 150
+\\      tokenRemovalDuration = 100
+\\      enclaveClearance.class = unmarked
+\\      authPeriod = PRIVILEGE \cross \{ \{ t: TIME @ t \mapsto t \upto t
++ 72000 \} \}
+\\      entryPeriod = PRIVILEGE \cross \{ CLASS \cross \{ TIME \} \}
+\end{schema}
+
+\begin{schema}{InitAdmin}
+        Admin
+\where
+        rolePresent = nil
+\\      currentAdminOp = nil
+\end{schema}
+
+\begin{schema}{InitStats}
+        Stats
+\where
+        successEntry = 0
+\\      failEntry = 0
+\\      successBio = 0
+\\      failBio = 0
+\end{schema}        
+
+\begin{schema}{InitAuditLog}
+        AuditLog
+\where
+        auditLog = \emptyset
+\\      auditAlarm = silent
+\end{schema}        
+
+\begin{schema}{InitIDStation}
+        IDStation
+\also
+	InitDoorLatchAlarm
+\\	InitConfig
+\\      InitKeyStore
+\\      InitStats
+\\      InitAuditLog
+\\      InitAdmin
+\where
+        currentScreen.screenMsg = clear
+\also
+	currentDisplay = blank
+\\	enclaveStatus = notEnrolled
+\\      status = quiescent
+\end{schema}
+
+\begin{schema}{StartContext}
+        \Delta IDStation
+\\      RealWorldChanges
+\also
+\\      \Xi Config
+\\      \Xi KeyStore
+\also
+	InitDoorLatchAlarm~'
+\\      InitStats~'
+\\      InitAdmin~'
+\also
+        \Xi UserToken  
+\\      \Xi AdminToken 
+\\      \Xi Finger 
+\\      \Xi Floppy 
+\\      \Xi Keyboard 
+\end{schema}
+
+\begin{schema}{StartNonEnrolledStation}
+        StartContext
+\where 
+        ownName = nil
+\also
+        currentScreen'.screenMsg = insertEnrolmentData
+\also
+	currentDisplay' = blank
+\\	enclaveStatus' = notEnrolled
+\\      status' = quiescent
+\also
+        (\exists newElements : \finset Audit;
+        startUnenrolledTISElement : Audit @ AddElementsToLog 
+\\ \t1  \land startUnenrolledTISElement \in newElements )
+\end{schema}
+
+\begin{schema}{StartEnrolledStation}
+        StartContext
+\where 
+        ownName \neq nil
+\also
+        currentScreen'.screenMsg = welcomeAdmin
+\also
+	currentDisplay' = welcome
+\\	enclaveStatus' = enclaveQuiescent
+\\      status' = quiescent
+\also
+        (\exists newElements : \finset Audit;
+        startEnrolledTISElement : Audit @ AddElementsToLog 
+\\ \t1  \land startEnrolledTISElement \in newElements )
+\end{schema}
+
+\begin{zed}
+        TISStartup == StartEnrolledStation \lor
+        StartNonEnrolledStation
+\end{zed}
+
+\begin{schema}{TISIdle}
+        \Xi IDStation
+\\      \Xi TISControlledRealWorld
+\where
+        status = quiescent
+\\      enclaveStatus = enclaveQuiescent
+\\      userTokenPresence = absent
+\\      adminTokenPresence = absent
+\\      rolePresent = nil
+\end{schema}
+
+\begin{zed}
+        TISAdminOp == TISOverrideDoorLockOp  \lor TISShutdownOp 
+\\      \t4     \lor TISUpdateConfigDataOp \lor TISArchiveLogOp
+\end{zed}
+
+\begin{zed}
+        TISProcessing == (TISEnrolOp
+\\ \t4  \lor TISUserEntryOp
+\\ \t4  \lor TISAdminLogon 
+\\ \t4  \lor TISStartAdminOp
+\\ \t4  \lor TISAdminOp 
+\\ \t4  \lor TISAdminLogout
+\\ \t4  \lor TISIdle ) \land LogChange
+\end{zed}
+
+\begin{schema}{WorldChangesSlowly}
+RealWorld
+\\ IDStation
+\where
+status \in \{ gotFinger, waitingFinger, waitingUpdateToken,
+waitingEntry \} \implies
+\\ \t1
+(userToken = 
+currentUserToken 
+\lor userToken = noT)
+\also
+rolePresent \neq nil \implies
+(adminToken = 
+currentAdminToken 
+\lor adminToken = noT)
+\end{schema}

@@ -1,0 +1,7 @@
+loadspec prueba2.tex
+selop Op
+genalltt
+showsch Op_VIS
+showsch -tcl
+showspec
+quit

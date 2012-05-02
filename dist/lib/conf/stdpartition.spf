@@ -1,0 +1,187 @@
+\cup : operator(S,T);
+S = \{\}, T = \{\};
+S = \{\}, T \neq \{\};
+S \neq \{\}, T = \{\};
+S \neq \{\}, T \neq \{\}, S \cap T = \{\};
+S \neq \{\}, T \neq \{\}, S \subset T;
+S \neq \{\}, T \neq \{\}, T \subset S;
+S \neq \{\}, T \neq \{\}, T = S;
+S \neq \{\}, T \neq \{\}, S \cap T \neq \{\}, \lnot(S \subseteq T), \lnot (T \subseteq S), T \neq S;
+end operator;
+
+
+\cap : operator(S,T);
+S = \{\}, T = \{\};
+S = \{\}, T \neq \{\};
+S \neq \{\}, T = \{\};
+S \neq \{\}, T \neq \{\}, S \cap T = \{\};
+S \neq \{\}, T \neq \{\}, S \subset T;
+S \neq \{\}, T \neq \{\}, T \subset S;
+S \neq \{\}, T \neq \{\}, T = S;
+S \neq \{\}, T \neq \{\}, S \cap T \neq \{\}, \lnot(S \subseteq T), \lnot (T \subseteq S), T \neq S;
+end operator;
+
+
+
+
+\setminus : operator(S,T);
+S = \{\}, T = \{\};
+S = \{\}, T \neq \{\};
+S \neq \{\}, T = \{\};
+S \neq \{\}, T \neq \{\}, S \cap T = \{\};
+S \neq \{\}, T \neq \{\}, S \subset T;
+S \neq \{\}, T \neq \{\}, T \subset S;
+S \neq \{\}, T \neq \{\}, T = S;
+S \neq \{\}, T \neq \{\}, (S \cap T) \neq \{\}, \lnot(S \subseteq T), \lnot (T \subseteq S), T \neq S;
+end operator;
+
+
+
+< : operator(A,B);
+A < 0, B < 0;
+A < 0, B = 0;
+A < 0, B > 0;
+A = 0, B > 0;
+A > 0, B > 0;
+end operator;
+
+
+\leq : operator(A,B);
+A < 0, B < 0, A < B;
+A < 0, B < 0, A = B;
+A < 0, B = 0;
+A < 0, B > 0;
+A = 0, B = 0;
+A = 0, B > 0;
+A > 0, B > 0, A < B;
+A > 0, B > 0, A = B;
+end operator;
+
+
+> : operator(A,B);
+A < 0, B < 0;
+A < 0, B = 0;
+A = 0, B < 0;
+A > 0, B = 0;
+A > 0, B > 0;
+end operator;
+
+
+\geq : operator(A,B);
+A < 0, B < 0, A > B;
+A < 0, B < 0, A = B;
+A = 0, B < 0;
+A = 0, B = 0;
+A > 0, B < 0;
+A > 0, B = 0;
+A > 0, B > 0, A > B;
+A > 0, B > 0, A = B;
+end operator;
+
+
+= : operator(A,B);
+A < 0, B < 0;
+A = 0, B = 0;
+A > 0, B > 0;
+end operator;
+
+
+\neq : operator(A,B);
+A < 0, B < 0;
+A < 0, B = 0;
+A < 0, B > 0;
+A = 0, B < 0;
+A = 0, B > 0;
+A > 0, B < 0;
+A > 0, B = 0;
+A > 0, B > 0;
+end operator;
+
+\oplus : operator(R,G);
+R = \{\}, G = \{\};
+R = \{\}, G \neq \{\};
+R \neq \{\}, G = \{\};
+R \neq \{\}, G \neq \{\}, \dom R = \dom G;
+R \neq \{\}, G \neq \{\}, \dom G \subset \dom R;
+R \neq \{\}, G \neq \{\}, (\dom R \cap \dom G) = \{\};
+R \neq \{\}, G \neq \{\}, \dom R \subset \dom G;
+R \neq \{\}, G \neq \{\}, (\dom R \cap \dom G) \neq \{\}, \lnot(\dom G
+\subseteq \dom R), \lnot(\dom R \subseteq \dom G);
+end operator;
+
+
+\dres : operator(S,R);
+R = \{\};
+R \neq \{\}, S = \{\};
+R \neq \{\}, S = \dom R;
+R \neq \{\}, S \neq \{\}, S \subset \dom R;
+R \neq \{\}, S \neq \{\}, S \cap \dom R = \{\};
+R \neq \{\}, S \cap \dom R \neq \{\}, \dom R \subset S;
+R \neq \{\}, S \cap \dom R \neq \{\}, \lnot(\dom R \subseteq S), \lnot(S \subseteq \dom R);
+end operator;
+
+
+\ndres : operator(S,R);
+R = \{\};
+R \neq \{\}, S = \{\};
+R \neq \{\}, S = \dom R;
+R \neq \{\}, S \neq \{\}, S \subset \dom R;
+R \neq \{\}, S \neq \{\}, S \cap \dom R = \{\};
+R \neq \{\}, S \cap \dom R \neq \{\}, \dom R \subset S;
+R \neq \{\}, S \cap \dom R \neq \{\}, \lnot(\dom R \subseteq S), \lnot(S \subseteq \dom R);
+end operator;
+
++ : operator(x,y);
+x < 0, y < 0, x < y;
+x < 0, y < 0, x = y;
+x < 0, y < 0, x > y;
+x < 0, y = 0;
+x < 0, y > 0;
+x = 0, y < 0;
+x = 0, y = 0;
+x = 0, y > 0;
+x > 0, y > 0, x < y;
+x > 0, y > 0, x = y;
+x > 0, y > 0, x > y;
+end operator;
+
+
+\rres : operator(R,S);
+R = \{\};
+R \neq \{\}, S = \{\};
+R \neq \{\}, S = \ran R;
+R \neq \{\}, S \neq \{\}, S \subset \ran R;
+R \neq \{\}, S \neq \{\}, S \cap \ran R = \{\};
+R \neq \{\}, S \cap \ran R \neq \{\}, \ran R \subset S;
+R \neq \{\}, S \cap \ran R \neq \{\}, \lnot(\ran R \subseteq S), \lnot(S \subseteq \ran R);
+end operator;
+
+\notin : operator(x,A);
+A = \{\};
+A \neq \{\};
+end operator;
+
+\in : operator(x,A);
+A = \{x\};
+A \neq \{x\}, x \in A;
+end operator;
+
+\# : operator(A);
+\# A = 0;
+\# A = 1;
+\# A > 1;
+end operator;
+
+
+
+\extract : operator(A,S);
+A = \{\}, \dom S = \{\};
+A = \{\}, \dom S \neq \{\};
+A \neq \{\}, \dom S = \{\};
+A \neq \{\}, \dom S \neq \{\}, A \cap \dom S = \{\};
+A \neq \{\}, \dom S \neq \{\}, A \subset \dom S;
+A \neq \{\}, \dom S \neq \{\}, \dom S \subset A;
+A \neq \{\}, \dom S \neq \{\}, A = \dom S;
+end operator;
+
+
